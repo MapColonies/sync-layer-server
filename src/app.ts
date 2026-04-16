@@ -9,4 +9,4 @@ async function getApp(registerOptions?: RegisterOptions): Promise<[Application, 
   return [app, container];
 }
 
-export { getApp };
+export { getApp }; 
