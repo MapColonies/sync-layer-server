@@ -9,6 +9,7 @@ import { getTracing } from '@common/tracing';
 import { getConfig } from './common/config';
 import { SyncManager } from './scheduler/syncManager';
 import { initializeDb, closeDb } from './dal/connection';
+import { getSyncConfig } from './common/syncConfig';
 
 export interface RegisterOptions {
   override?: InjectionObject<unknown>[];
@@ -26,9 +27,10 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
   const metricsRegistry = new Registry();
   configInstance.initializeMetrics(metricsRegistry);
 
-  const dataSource = await initializeDb();
+  const syncConfig = getSyncConfig();
+  const dataSource = await initializeDb(syncConfig.layers);
   const { host, port, database } = dataSource.options as { host: string; port: number; database: string };
-  logger.info(`Database connected to ${host}:${port}/${database}`);
+  logger.info(`Database connected to ${host}:${port}/${database} (layer partitions: ${syncConfig.layers.join(', ')})`);
 
   const syncManager = new SyncManager(logger);
 

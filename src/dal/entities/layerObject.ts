@@ -1,7 +1,15 @@
 import { Entity, PrimaryColumn, Column } from 'typeorm';
 
-@Entity('layer_obstacles')
+
+export function getLayerPartitionName(layerName: string): string {
+  return `layer_${layerName}`;
+}
+
+@Entity('layer_objects')
 export class LayerObjectEntity {
+  @PrimaryColumn({ name: 'layer_name', type: 'text' })
+  public layerName!: string;
+
   @PrimaryColumn({ type: 'text' })
   public id!: string;
 
@@ -9,7 +17,7 @@ export class LayerObjectEntity {
   public geometry!: object | null;
 
   @Column({ type: 'jsonb', default: {} })
-  public properties!: object;
+  public properties!: Record<string, unknown>;
 }
 
 export interface LayerObject {
