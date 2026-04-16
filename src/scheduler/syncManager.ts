@@ -15,15 +15,15 @@ export class SyncManager {
 
   public constructor(private readonly logger: Logger) {}
 
-  public start(): void {
+  public async start(): Promise<void> {
     const config = getSyncConfig();
 
     this.logger.info(`Initializing sync for layers: ${config.layers.join(', ')}`);
 
-    syncStateRepository.initializeSyncState(config.layers);
+    await syncStateRepository.initializeSyncState(config.layers);
 
     const initNowTime = Date.now();
-    const states = syncStateRepository.getAllSyncStates();
+    const states = await syncStateRepository.getAllSyncStates();
     for (const state of states) {
       this.heap.push({ layerName: state.layerName, nextRunAt: initNowTime });
       this.logger.info(`Layer "${state.layerName}" scheduled - status: ${state.status}, offset: ${state.lastOffset}`);

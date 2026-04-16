@@ -20,7 +20,7 @@ void getApp()
       logger.info(`app started on port ${port}`);
 
       const syncManager = container.resolve<SyncManager>(SERVICES.SYNC_MANAGER);
-      syncManager.start();
+      void syncManager.start();
     });
   })
   .catch((error: Error) => {

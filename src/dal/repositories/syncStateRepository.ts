@@ -1,43 +1,40 @@
-import { SyncStatus, type SyncStateEntry } from '../entities';
+import type { Repository } from 'typeorm';
+import { SyncStatus, SyncStateEntry } from '../entities';
+import { getDataSource } from '../connection';
 
-// TODO: migrate to DB table `sync_state` - currently in-memory (resets on restart)
-const state = new Map<string, SyncStateEntry>();
+function getRepository(): Repository<SyncStateEntry> {
+  return getDataSource().getRepository(SyncStateEntry);
+}
 
-export function initializeSyncState(layers: string[]): void {
+export async function initializeSyncState(layers: string[]): Promise<void> {
+  const repo = getRepository();
   for (const layerName of layers) {
-    if (!state.has(layerName)) {
-      state.set(layerName, {
-        layerName,
-        status: SyncStatus.SYNCING,
-        lastOffset: 0,
-        updatedAt: new Date(),
-      });
-    }
+    await repo
+      .createQueryBuilder()
+      .insert()
+      .into(SyncStateEntry)
+      .values({ layerName, status: SyncStatus.SYNCING, lastOffset: 0 })
+      .orIgnore()
+      .execute();
   }
 }
 
-export function getSyncState(layerName: string): SyncStateEntry {
-  const entry = state.get(layerName);
+export async function getSyncState(layerName: string): Promise<SyncStateEntry> {
+  const entry = await getRepository().findOneBy({ layerName });
   if (!entry) {
     throw new Error(`No sync state found for layer "${layerName}"`);
   }
   return entry;
 }
 
-export function getAllSyncStates(): SyncStateEntry[] {
-  return [...state.values()];
+export async function getAllSyncStates(): Promise<SyncStateEntry[]> {
+  return getRepository().find();
 }
 
-export function updateOffset(layerName: string, newOffset: number): void {
-  const entry = getSyncState(layerName);
-  entry.lastOffset = newOffset;
-  entry.updatedAt = new Date();
-  // TODO: persist to DB - UPDATE sync_state SET last_offset = $1, updated_at = $2 WHERE layer_name = $3
+export async function updateOffset(layerName: string, newOffset: number): Promise<void> {
+  await getRepository().update({ layerName }, { lastOffset: newOffset });
 }
 
-export function setStatus(layerName: string, status: SyncStatus): void {
-  const entry = getSyncState(layerName);
-  entry.status = status;
-  entry.updatedAt = new Date();
-  // TODO: persist to DB - UPDATE sync_state SET status = $1, updated_at = $2 WHERE layer_name = $3
+export async function setStatus(layerName: string, status: SyncStatus): Promise<void> {
+  await getRepository().update({ layerName }, { status });
 }

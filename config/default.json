@@ -33,5 +33,14 @@
     "pollIntervalMs": 600000,
     "pageSize": 500,
     "thirdPartyBaseUrl": "http://mock-third-party/graphql"
+  },
+  "db": {
+    "host": "localhost",
+    "port": 5432,
+    "database": "postgres",
+    "username": "postgres",
+    "password": "postgres",
+    "ssl": false,
+    "poolSize": 10
   }
 }
