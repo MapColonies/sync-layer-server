@@ -1,0 +1,37 @@
+{
+  "telemetry": {
+    "metrics": {},
+    "tracing": {
+      "isEnabled": false
+    },
+    "shared": {},
+    "logger": {
+      "level": "info",
+      "prettyPrint": false,
+      "opentelemetryOptions": {
+        "enabled": false
+      }
+    }
+  },
+  "server": {
+    "port": 8080,
+    "request": {
+      "payload": {
+        "limit": "1mb"
+      }
+    },
+    "response": {
+      "compression": {
+        "enabled": true,
+        "options": null
+      }
+    }
+  },
+  "sync": {
+    "layers": ["obstacles"],
+    "syncIntervalMs": 500,
+    "pollIntervalMs": 600000,
+    "pageSize": 500,
+    "thirdPartyBaseUrl": "http://mock-third-party/graphql"
+  }
+}
