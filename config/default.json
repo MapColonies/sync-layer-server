@@ -32,15 +32,32 @@
     "syncIntervalMs": 500,
     "pollIntervalMs": 600000,
     "pageSize": 500,
-    "thirdPartyBaseUrl": "http://mock-third-party/graphql"
+    "thirdPartyBaseUrl": "http://mock-third-party/graphql",
+    "auth": {
+      "token": ""
+    },
+    "system": {
+      "name": "sync-layer-server",
+      "details": {
+        "description": "Sync layer service pulling geospatial layers from the third-party API into PostgreSQL",
+        "version": "1.0.0",
+        "owner": "libot"
+      }
+    }
   },
   "db": {
+    "type": "postgres",
     "host": "localhost",
     "port": 5432,
     "database": "postgres",
     "username": "postgres",
     "password": "postgres",
-    "ssl": false,
+    "enableSslAuth": false,
+    "sslPaths": {
+      "ca": "",
+      "key": "",
+      "cert": ""
+    },
     "poolSize": 10
   }
 }

@@ -1,9 +1,16 @@
-export interface DbConfig {
+import type { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
+
+export interface DbConfig extends PostgresConnectionOptions {
+  type: 'postgres';
   host: string;
   port: number;
-  database: string;
   username: string;
-  password: string;
-  ssl: boolean;
-  poolSize: number;
+  password?: string;
+  database: string;
+  enableSslAuth?: boolean;
+  sslPaths?: {
+    ca: string;
+    cert: string;
+    key: string;
+  };
 }

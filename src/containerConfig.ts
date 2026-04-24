@@ -9,6 +9,7 @@ import { getTracing } from '@common/tracing';
 import { getConfig } from './common/config';
 import { SyncManager } from './scheduler/syncManager';
 import { initializeDb, closeDb } from './dal/connection';
+import { ConnectionManager, type HealthCheck } from './dal/connectionManager';
 import { getSyncConfig } from './common/syncConfig';
 
 export interface RegisterOptions {
@@ -40,6 +41,18 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
     { token: SERVICES.TRACER, provider: { useValue: tracer } },
     { token: SERVICES.METRICS, provider: { useValue: metricsRegistry } },
     { token: SERVICES.SYNC_MANAGER, provider: { useValue: syncManager } },
+    { token: ConnectionManager, provider: { useClass: ConnectionManager } },
+    {
+      token: SERVICES.HEALTH_CHECK,
+      provider: {
+        useFactory: (dependencyContainer: DependencyContainer): HealthCheck => {
+          const connectionManager = dependencyContainer.resolve(ConnectionManager);
+          return async () => {
+            await Promise.resolve(connectionManager.healthCheck());
+          };
+        },
+      },
+    },
     {
       token: 'onSignal',
       provider: {

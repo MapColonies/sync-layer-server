@@ -7,14 +7,15 @@ import { SERVICES } from '@common/constants';
 import type { ConfigType } from '@common/config';
 import { getApp } from './app';
 import { SyncManager } from './scheduler/syncManager';
+import type { HealthCheck } from './dal/connectionManager';
 
 void getApp()
   .then(([app, container]) => {
     const logger = container.resolve<Logger>(SERVICES.LOGGER);
     const config = container.resolve<ConfigType>(SERVICES.CONFIG);
     const port = config.get('server.port');
-    const stubHealthCheck = async (): Promise<void> => Promise.resolve();
-    const server = createTerminus(createServer(app), { healthChecks: { '/liveness': stubHealthCheck }, onSignal: container.resolve('onSignal') });
+    const healthCheck = container.resolve<HealthCheck>(SERVICES.HEALTH_CHECK);
+    const server = createTerminus(createServer(app), { healthChecks: { '/liveness': healthCheck }, onSignal: container.resolve('onSignal') });
 
     server.listen(port, () => {
       logger.info(`app started on port ${port}`);
