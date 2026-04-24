@@ -57,7 +57,7 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
       token: 'onSignal',
       provider: {
         useValue: async (): Promise<void> => {
-          syncManager.stop();
+          await syncManager.stop();
           await Promise.all([closeDb(), getTracing().stop()]);
         },
       },

@@ -13,6 +13,7 @@ export class SyncManager {
   private running = false;
   private readonly heap = new Heap<ScheduleEntry>(scheduleComparator);
   private abortController: AbortController | null = null;
+  private loopPromise: Promise<void> | null = null;
 
   public constructor(private readonly logger: Logger) {}
 
@@ -36,13 +37,17 @@ export class SyncManager {
     });
 
     this.running = true;
-    void this.runSchedulerLoop();
+    this.loopPromise = this.runSchedulerLoop();
   }
 
-  public stop(): void {
+  public async stop(): Promise<void> {
     this.logger.info('Stopping sync manager...');
     this.running = false;
     this.abortController?.abort();
+    if (this.loopPromise) {
+      await this.loopPromise;
+      this.loopPromise = null;
+    }
   }
 
   private async runSchedulerLoop(): Promise<void> {
