@@ -6,7 +6,7 @@ export const GET_LAYER_PAGE = `
       nextRecord
       objects {
         id
-        geometry
+        footprint: geometry
         properties
       }
       deprecated {

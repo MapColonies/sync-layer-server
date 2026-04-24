@@ -13,7 +13,7 @@ export async function insertObjects(layerName: string, objects: LayerObject[]): 
   const rows = objects.map((o) => ({
     layerName,
     id: o.id,
-    geometry: o.geometry,
+    footprint: o.footprint,
     properties: o.properties,
   }));
 
