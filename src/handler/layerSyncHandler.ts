@@ -26,8 +26,8 @@ export async function fetchAndSyncLayerPage(logger: Logger, entry: ScheduleEntry
     }
 
     if (response.deprecated.length > 0) {
-      logger.info(`Updating ${response.deprecated.length} deprecated objects in layer "${entry.layerName}"`);
-      await layerDataRepository.updateDeprecatedObjects(entry.layerName, response.deprecated);
+      logger.info(`Deleting ${response.deprecated.length} deprecated objects from layer "${entry.layerName}"`);
+      await layerDataRepository.deleteDeprecatedObjects(entry.layerName, response.deprecated);
     }
 
     await syncStateRepository.updateOffset(entry.layerName, response.nextRecord);

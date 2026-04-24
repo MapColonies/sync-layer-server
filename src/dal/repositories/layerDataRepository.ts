@@ -26,17 +26,15 @@ export async function insertObjects(layerName: string, objects: LayerObject[]): 
     .execute();
 }
 
-export async function updateDeprecatedObjects(layerName: string, deprecated: DeprecatedObject[]): Promise<void> {
+export async function deleteDeprecatedObjects(layerName: string, deprecated: DeprecatedObject[]): Promise<void> {
   if (deprecated.length === 0) return;
 
-  const repo = getRepository();
-  for (const obj of deprecated) {
-    await repo
-      .createQueryBuilder()
-      .update(LayerObjectEntity)
-      .set({ properties: () => `properties || :patch::jsonb` })
-      .where('layer_name = :layerName AND id = :id', { layerName, id: obj.id })
-      .setParameter('patch', JSON.stringify(obj.updatedFields))
-      .execute();
-  }
+  const ids = deprecated.map((o) => o.id);
+
+  await getRepository()
+    .createQueryBuilder()
+    .delete()
+    .from(LayerObjectEntity)
+    .where('layer_name = :layerName AND id IN (:...ids)', { layerName, ids })
+    .execute();
 }

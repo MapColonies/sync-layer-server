@@ -45,7 +45,7 @@ The layer data schema uses **native PostgreSQL LIST partitioning**: there is a s
 - `**src/dal/repositories/syncStateRepository.ts**` - unchanged shape, backed by the shared `sync_state` table.
 - `**src/dal/repositories/layerDataRepository.ts**` - layer-aware via the `layer_name` column, **not** via dynamic entities or table names:
   - `insertObjects(layerName, objects)` - bulk upsert into `layer_objects`, with `layer_name` stamped on every row; uses `orUpdate(['geometry', 'properties'], ['layer_name', 'id'])`. Postgres routes each row to the `layer_<layerName>` partition automatically.
-  - `updateDeprecatedObjects(layerName, deprecated)` - parameterized JSONB merge (`properties = properties || :patch::jsonb WHERE layer_name = :layerName AND id = :id`). Partition pruning limits the update to the matching partition.
+  - `deleteDeprecatedObjects(layerName, deprecated)` - batch `DELETE FROM layer_objects WHERE layer_name = :layerName AND id IN (:...ids)`. Partition pruning limits the delete to the matching partition.
 
 ### Wiring
 
@@ -73,7 +73,7 @@ To onboard a new layer (e.g. `roads`):
   ```sql
    CREATE TABLE IF NOT EXISTS "layer_roads" PARTITION OF layer_objects FOR VALUES IN ('roads');
   ```
-3. No code changes are required - `insertObjects('roads', ...)` and `updateDeprecatedObjects('roads', ...)` already take `layerName` as a parameter, and Postgres routes writes to `layer_roads` based on the `layer_name` column.
+3. No code changes are required - `insertObjects('roads', ...)` and `deleteDeprecatedObjects('roads', ...)` already take `layerName` as a parameter, and Postgres routes writes to `layer_roads` based on the `layer_name` column.
 
 ## Why LIST partitioning (and not per-layer tables or a flat table)
 
