@@ -34,7 +34,6 @@ export function createDataSource(): DataSource {
     ssl: buildSslOptions(dbConfig),
     entities: [SyncStateEntry, LayerObjectEntity],
     synchronize: false,
-    poolSize: dbConfig.poolSize,
   });
 }
 
