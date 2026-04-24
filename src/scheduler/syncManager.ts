@@ -5,6 +5,7 @@ import type { ScheduleEntry } from '../types';
 import { getSyncConfig } from '../common/syncConfig';
 import * as syncStateRepository from '../dal/repositories/syncStateRepository';
 import { fetchAndSyncLayerPage } from '../handler/layerSyncHandler';
+import { withSpan } from '../common/telemetry';
 
 const scheduleComparator = (a: ScheduleEntry, b: ScheduleEntry): number => a.nextRunAt - b.nextRunAt;
 
@@ -20,14 +21,19 @@ export class SyncManager {
 
     this.logger.info(`Initializing sync for layers: ${config.layers.join(', ')}`);
 
-    await syncStateRepository.initializeSyncState(config.layers);
+    await withSpan('syncManager.initialize', { 'sync.layers': config.layers.join(',') }, async (span) => {
+      await syncStateRepository.initializeSyncState(config.layers);
 
-    const initNowTime = Date.now();
-    const states = await syncStateRepository.getAllSyncStates();
-    for (const state of states) {
-      this.heap.push({ layerName: state.layerName, nextRunAt: initNowTime });
-      this.logger.info(`Layer "${state.layerName}" scheduled - status: ${state.status}, lastSequence: ${state.lastSequence}`);
-    }
+      const initNowTime = Date.now();
+      const states = await syncStateRepository.getAllSyncStates();
+
+      for (const state of states) {
+        this.heap.push({ layerName: state.layerName, nextRunAt: initNowTime });
+        this.logger.info(`Layer "${state.layerName}" scheduled - status: ${state.status}, lastSequence: ${state.lastSequence}`);
+      }
+
+      span.setAttribute('sync.scheduledLayers', states.length);
+    });
 
     this.running = true;
     void this.runSchedulerLoop();

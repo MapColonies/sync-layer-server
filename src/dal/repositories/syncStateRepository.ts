@@ -1,22 +1,29 @@
 import type { Repository } from 'typeorm';
 import { SyncStatus, SyncStateEntry } from '../entities';
 import { getDataSource } from '../connection';
+import { withSpan } from '../../common/telemetry';
 
 function getRepository(): Repository<SyncStateEntry> {
   return getDataSource().getRepository(SyncStateEntry);
 }
 
 export async function initializeSyncState(layers: string[]): Promise<void> {
-  const repo = getRepository();
-  for (const layerName of layers) {
-    await repo
-      .createQueryBuilder()
-      .insert()
-      .into(SyncStateEntry)
-      .values({ layerName, status: SyncStatus.SYNCING, lastSequence: '0' })
-      .orIgnore()
-      .execute();
-  }
+  await withSpan(
+    'syncStateRepository.initializeSyncState',
+    { 'db.system': 'postgresql', 'db.operation': 'INSERT', 'sync.layers': layers.join(',') },
+    async () => {
+      const repo = getRepository();
+      for (const layerName of layers) {
+        await repo
+          .createQueryBuilder()
+          .insert()
+          .into(SyncStateEntry)
+          .values({ layerName, status: SyncStatus.SYNCING, lastSequence: '0' })
+          .orIgnore()
+          .execute();
+      }
+    }
+  );
 }
 
 export async function getSyncState(layerName: string): Promise<SyncStateEntry> {
