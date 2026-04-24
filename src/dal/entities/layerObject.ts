@@ -18,6 +18,9 @@ export class LayerObjectEntity {
 
   @Column({ type: 'jsonb', default: {} })
   public properties!: Record<string, unknown>;
+
+  @Column({ name: 'created_at', type: 'timestamptz', default: () => 'now()' })
+  public createdAt!: Date;
 }
 
 export interface LayerObject {

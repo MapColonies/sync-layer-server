@@ -22,7 +22,7 @@ export async function insertObjects(layerName: string, objects: LayerObject[]): 
     .insert()
     .into(LayerObjectEntity)
     .values(rows as unknown as ObjectLiteral[])
-    .orUpdate(['geometry', 'properties'], ['layer_name', 'id'])
+    .orIgnore()
     .execute();
 }
 

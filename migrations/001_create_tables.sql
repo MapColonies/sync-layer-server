@@ -15,5 +15,6 @@ CREATE TABLE IF NOT EXISTS layer_objects (
   id          TEXT NOT NULL,
   geometry    JSONB,
   properties  JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (layer_name, id)
 ) PARTITION BY LIST (layer_name);
