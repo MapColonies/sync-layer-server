@@ -65,7 +65,7 @@ src/
 
 4. **Data Processing** - The handler orchestrates the response and delegates to `layerDataRepository`:
    - `insertObjects()` - Batch upserts new/updated geospatial objects into the remote DB layer table.
-   - `updateDeprecatedObjects()` - Batch merges updated fields into existing objects in the remote DB.
+   - `deleteDeprecatedObjects()` - Batch deletes deprecated objects from the remote DB by id.
 
 5. **State Update** - `syncStateRepository` advances the offset to `nextRecord`.
 
