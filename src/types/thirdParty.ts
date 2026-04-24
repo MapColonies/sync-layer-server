@@ -1,11 +1,11 @@
-import type { LayerObject, DeprecatedObject } from '../dal/entities/layerObject';
+import type { LayerObject } from '../dal/entities/layerObject';
 
-export type { LayerObject, DeprecatedObject };
+export type { LayerObject };
 
 export interface ThirdPartyResponse {
-  totalCount: number;
-  returnedCount: number;
-  nextRecord: number;
+  nextSequence: string;
+  fetchedCount: number;
+  deletedCount: number;
+  deletedIds: string[];
   objects: LayerObject[];
-  deprecated: DeprecatedObject[];
 }

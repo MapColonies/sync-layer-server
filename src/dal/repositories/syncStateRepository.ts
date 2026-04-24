@@ -13,7 +13,7 @@ export async function initializeSyncState(layers: string[]): Promise<void> {
       .createQueryBuilder()
       .insert()
       .into(SyncStateEntry)
-      .values({ layerName, status: SyncStatus.SYNCING, lastOffset: 0 })
+      .values({ layerName, status: SyncStatus.SYNCING, lastSequence: '0' })
       .orIgnore()
       .execute();
   }
@@ -31,8 +31,8 @@ export async function getAllSyncStates(): Promise<SyncStateEntry[]> {
   return getRepository().find();
 }
 
-export async function updateOffset(layerName: string, newOffset: number): Promise<void> {
-  await getRepository().update({ layerName }, { lastOffset: newOffset });
+export async function updateSequence(layerName: string, newSequence: string): Promise<void> {
+  await getRepository().update({ layerName }, { lastSequence: newSequence });
 }
 
 export async function setStatus(layerName: string, status: SyncStatus): Promise<void> {

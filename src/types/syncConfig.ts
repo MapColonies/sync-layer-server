@@ -4,6 +4,10 @@ export interface SyncConfig {
   pollIntervalMs: number;
   pageSize: number;
   thirdPartyBaseUrl: string;
+  realityId: number;
+  requestingSystem: string;
+  requestingSystemName: string;
+  useDeleteEntities: boolean;
   auth: {
     token: string;
   };

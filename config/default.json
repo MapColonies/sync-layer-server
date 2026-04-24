@@ -31,8 +31,12 @@
     "layers": ["obstacles"],
     "syncIntervalMs": 500,
     "pollIntervalMs": 600000,
-    "pageSize": 500,
+    "pageSize": 1000,
     "thirdPartyBaseUrl": "http://mock-third-party/graphql",
+    "realityId": 0,
+    "requestingSystem": "sync-layer-server_prod",
+    "requestingSystemName": "sync-layer-server",
+    "useDeleteEntities": true,
     "auth": {
       "token": ""
     },

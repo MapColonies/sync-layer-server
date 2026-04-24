@@ -13,8 +13,8 @@ export class SyncStateEntry {
   @Column({ type: 'text', default: SyncStatus.SYNCING })
   public status!: SyncStatus;
 
-  @Column({ name: 'last_offset', type: 'integer', default: 0 })
-  public lastOffset!: number;
+  @Column({ name: 'last_sequence', type: 'text', default: '0' })
+  public lastSequence!: string;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   public updatedAt!: Date;

@@ -26,7 +26,7 @@ export class SyncManager {
     const states = await syncStateRepository.getAllSyncStates();
     for (const state of states) {
       this.heap.push({ layerName: state.layerName, nextRunAt: initNowTime });
-      this.logger.info(`Layer "${state.layerName}" scheduled - status: ${state.status}, offset: ${state.lastOffset}`);
+      this.logger.info(`Layer "${state.layerName}" scheduled - status: ${state.status}, lastSequence: ${state.lastSequence}`);
     }
 
     this.running = true;

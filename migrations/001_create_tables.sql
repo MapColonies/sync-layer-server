@@ -9,7 +9,7 @@ CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE TABLE IF NOT EXISTS sync_state (
   layer_name  TEXT PRIMARY KEY,
   status      TEXT NOT NULL DEFAULT 'SYNCING',
-  last_offset INTEGER NOT NULL DEFAULT 0,
+  last_sequence TEXT NOT NULL DEFAULT '0',
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

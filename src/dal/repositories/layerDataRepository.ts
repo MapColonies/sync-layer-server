@@ -1,5 +1,5 @@
 import type { ObjectLiteral, Repository } from 'typeorm';
-import type { DeprecatedObject, LayerObject } from '../entities';
+import type { LayerObject } from '../entities';
 import { LayerObjectEntity } from '../entities';
 import { getDataSource } from '../connection';
 
@@ -26,15 +26,13 @@ export async function insertObjects(layerName: string, objects: LayerObject[]): 
     .execute();
 }
 
-export async function deleteDeprecatedObjects(layerName: string, deprecated: DeprecatedObject[]): Promise<void> {
-  if (deprecated.length === 0) return;
-
-  const ids = deprecated.map((o) => o.id);
+export async function deleteDeprecatedObjects(layerName: string, deletedIds: string[]): Promise<void> {
+  if (deletedIds.length === 0) return;
 
   await getRepository()
     .createQueryBuilder()
     .delete()
     .from(LayerObjectEntity)
-    .where('layer_name = :layerName AND id IN (:...ids)', { layerName, ids })
+    .where('layer_name = :layerName AND id IN (:...ids)', { layerName, ids: deletedIds })
     .execute();
 }
