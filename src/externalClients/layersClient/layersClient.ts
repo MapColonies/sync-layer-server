@@ -1,3 +1,4 @@
+import axios from 'axios';
 import type { LayerObject, ThirdPartyResponse } from '../../types';
 import { getSyncConfig } from '../../common/syncConfig';
 import { buildLayerQuery } from '../layersClientModel';
@@ -11,7 +12,6 @@ interface GraphQLResponse {
     fetchedEntitiesCount: number;
     deletedEntitiesIds: string[];
   };
-  errors?: unknown[];
 }
 
 export async function fetchPage(layerName: string, sequence: string): Promise<ThirdPartyResponse> {
@@ -27,8 +27,7 @@ export async function fetchPage(layerName: string, sequence: string): Promise<Th
       'sync.pageSize': config.pageSize,
     },
     async (span) => {
-      const response = await fetch(config.thirdPartyBaseUrl, {
-        method: 'POST',
+      const response = await axios.post<GraphQLResponse>(config.thirdPartyBaseUrl, { query: buildLayerQuery(layerName) }, {
         headers: {
           'Content-Type': 'application/json',
           'reality-id': String(config.realityId),
@@ -39,20 +38,11 @@ export async function fetchPage(layerName: string, sequence: string): Promise<Th
           Authorization: config.authToken,
           'use-Delete-Entities': String(config.useDeleteEntities),
         },
-        body: JSON.stringify({ query: buildLayerQuery(layerName) }),
       });
 
       span.setAttribute('http.status_code', response.status);
 
-      if (!response.ok) {
-        throw new Error(`Third-party API error: ${response.status} ${response.statusText}`);
-      }
-
-      const json = (await response.json()) as GraphQLResponse;
-
-      if (json.errors) {
-        throw new Error(`GraphQL errors: ${JSON.stringify(json.errors)}`);
-      }
+      const json = response.data;
 
       if (!json.data || !json.extensions) {
         throw new Error('Malformed response from third-party API');
