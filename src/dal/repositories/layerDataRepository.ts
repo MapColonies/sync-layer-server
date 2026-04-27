@@ -1,8 +1,12 @@
+import { trace } from '@opentelemetry/api';
+import { asyncCallWithSpan } from '@map-colonies/tracing-utils';
 import type { ObjectLiteral, Repository } from 'typeorm';
 import type { LayerObject } from '../entities';
 import { LayerObjectEntity } from '../entities';
 import { getDataSource } from '../connection';
-import { withSpan } from '../../common/telemetry';
+import { SERVICE_NAME } from '../../common/constants';
+
+const tracer = trace.getTracer(SERVICE_NAME);
 
 function getRepository(): Repository<LayerObjectEntity> {
   return getDataSource().getRepository(LayerObjectEntity);
@@ -18,9 +22,7 @@ export async function insertObjects(layerName: string, objects: LayerObject[]): 
     properties: o.properties,
   }));
 
-  await withSpan(
-    'layerDataRepository.insertObjects',
-    { 'db.system': 'postgresql', 'db.operation': 'INSERT', 'sync.layer': layerName, 'sync.rowCount': rows.length },
+  await asyncCallWithSpan(
     async () => {
       await getRepository()
         .createQueryBuilder()
@@ -29,16 +31,16 @@ export async function insertObjects(layerName: string, objects: LayerObject[]): 
         .values(rows as unknown as ObjectLiteral[])
         .orIgnore()
         .execute();
-    }
+    },
+    tracer,
+    'layerDataRepository.insertObjects'
   );
 }
 
 export async function deleteDeprecatedObjects(layerName: string, deletedIds: string[]): Promise<void> {
   if (deletedIds.length === 0) return;
 
-  await withSpan(
-    'layerDataRepository.deleteDeprecatedObjects',
-    { 'db.system': 'postgresql', 'db.operation': 'DELETE', 'sync.layer': layerName, 'sync.rowCount': deletedIds.length },
+  await asyncCallWithSpan(
     async () => {
       await getRepository()
         .createQueryBuilder()
@@ -46,6 +48,8 @@ export async function deleteDeprecatedObjects(layerName: string, deletedIds: str
         .from(LayerObjectEntity)
         .where('layer_name = :layerName AND id IN (:...ids)', { layerName, ids: deletedIds })
         .execute();
-    }
+    },
+    tracer,
+    'layerDataRepository.deleteDeprecatedObjects'
   );
 }

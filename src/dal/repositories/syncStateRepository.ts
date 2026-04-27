@@ -1,16 +1,18 @@
+import { trace } from '@opentelemetry/api';
+import { asyncCallWithSpan } from '@map-colonies/tracing-utils';
 import type { Repository } from 'typeorm';
 import { SyncStatus, SyncStateEntry } from '../entities';
 import { getDataSource } from '../connection';
-import { withSpan } from '../../common/telemetry';
+import { SERVICE_NAME } from '../../common/constants';
+
+const tracer = trace.getTracer(SERVICE_NAME);
 
 function getRepository(): Repository<SyncStateEntry> {
   return getDataSource().getRepository(SyncStateEntry);
 }
 
 export async function initializeSyncState(layers: string[]): Promise<void> {
-  await withSpan(
-    'syncStateRepository.initializeSyncState',
-    { 'db.system': 'postgresql', 'db.operation': 'INSERT', 'sync.layers': layers.join(',') },
+  await asyncCallWithSpan(
     async () => {
       const repo = getRepository();
       for (const layerName of layers) {
@@ -22,7 +24,9 @@ export async function initializeSyncState(layers: string[]): Promise<void> {
           .orIgnore()
           .execute();
       }
-    }
+    },
+    tracer,
+    'syncStateRepository.initializeSyncState'
   );
 }
 

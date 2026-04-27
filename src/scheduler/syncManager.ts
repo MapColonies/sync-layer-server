@@ -1,15 +1,18 @@
 import { setTimeout as sleep } from 'node:timers/promises';
+import { trace, type Tracer } from '@opentelemetry/api';
+import { withSpanAsyncV4 as withSpanAsync } from '@map-colonies/tracing-utils';
 import type { Logger } from '@map-colonies/js-logger';
 import { Heap } from 'heap-js';
 import type { ScheduleEntry } from '../types';
 import { getSyncConfig } from '../common/syncConfig';
 import * as syncStateRepository from '../dal/repositories/syncStateRepository';
 import { fetchAndSyncLayerPage } from '../handler/layerSyncHandler';
-import { withSpan } from '../common/telemetry';
+import { SERVICE_NAME } from '../common/constants';
 
 const scheduleComparator = (a: ScheduleEntry, b: ScheduleEntry): number => a.nextRunAt - b.nextRunAt;
 
 export class SyncManager {
+  public readonly tracer: Tracer = trace.getTracer(SERVICE_NAME);
   private running = false;
   private readonly heap = new Heap<ScheduleEntry>(scheduleComparator);
   private abortController: AbortController | null = null;
@@ -22,19 +25,7 @@ export class SyncManager {
 
     this.logger.info(`Initializing sync for layers: ${config.layers.join(', ')}`);
 
-    await withSpan('syncManager.initialize', { 'sync.layers': config.layers.join(',') }, async (span) => {
-      await syncStateRepository.initializeSyncState(config.layers);
-
-      const initNowTime = Date.now();
-      const states = await syncStateRepository.getAllSyncStates();
-
-      for (const state of states) {
-        this.heap.push({ layerName: state.layerName, nextRunAt: initNowTime });
-        this.logger.info(`Layer "${state.layerName}" scheduled - status: ${state.status}, lastSequence: ${state.lastSequence}`);
-      }
-
-      span.setAttribute('sync.scheduledLayers', states.length);
-    });
+    await this.initialize(config.layers);
 
     this.running = true;
     this.loopPromise = this.runSchedulerLoop();
@@ -47,6 +38,19 @@ export class SyncManager {
     if (this.loopPromise) {
       await this.loopPromise;
       this.loopPromise = null;
+    }
+  }
+
+  @withSpanAsync
+  private async initialize(layers: string[]): Promise<void> {
+    await syncStateRepository.initializeSyncState(layers);
+
+    const initNowTime = Date.now();
+    const states = await syncStateRepository.getAllSyncStates();
+
+    for (const state of states) {
+      this.heap.push({ layerName: state.layerName, nextRunAt: initNowTime });
+      this.logger.info(`Layer "${state.layerName}" scheduled - status: ${state.status}, lastSequence: ${state.lastSequence}`);
     }
   }
 

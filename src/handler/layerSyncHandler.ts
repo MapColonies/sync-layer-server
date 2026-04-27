@@ -1,33 +1,25 @@
+import { trace } from '@opentelemetry/api';
+import { asyncCallWithSpan } from '@map-colonies/tracing-utils';
 import type { Logger } from '@map-colonies/js-logger';
 import { SyncStatus, type ScheduleEntry } from '../types';
 import { getSyncConfig } from '../common/syncConfig';
 import * as syncStateRepository from '../dal/repositories/syncStateRepository';
 import * as layerClient from '../externalClients/layersClient/layersClient';
 import * as layerDataRepository from '../dal/repositories/layerDataRepository';
-import { withSpan } from '../common/telemetry';
+import { SERVICE_NAME } from '../common/constants';
+
+const tracer = trace.getTracer(SERVICE_NAME);
 
 export async function fetchAndSyncLayerPage(logger: Logger, entry: ScheduleEntry): Promise<void> {
   const config = getSyncConfig();
   const state = await syncStateRepository.getSyncState(entry.layerName);
 
-  await withSpan(
-    'sync.fetchAndSyncLayerPage',
-    {
-      'sync.layer': entry.layerName,
-      'sync.status': state.status,
-      'sync.lastSequence': state.lastSequence,
-    },
-    async (span) => {
+  await asyncCallWithSpan(
+    async () => {
       try {
         logger.info(`Fetching page for layer "${entry.layerName}" - status: ${state.status}, lastSequence: ${state.lastSequence}`);
 
         const response = await layerClient.fetchPage(entry.layerName, state.lastSequence);
-
-        span.setAttributes({
-          'sync.fetchedCount': response.fetchedCount,
-          'sync.deletedCount': response.deletedCount,
-          'sync.nextSequence': response.nextSequence,
-        });
 
         logger.info(`Received ${response.fetchedCount} objects, ${response.deletedCount} deleted for layer "${entry.layerName}"`);
 
@@ -50,7 +42,9 @@ export async function fetchAndSyncLayerPage(logger: Logger, entry: ScheduleEntry
       } catch (error) {
         logger.error(`Error processing layer "${entry.layerName}": ${(error as Error).message}`);
       }
-    }
+    },
+    tracer,
+    'sync.fetchAndSyncLayerPage'
   );
 
   const updatedState = await syncStateRepository.getSyncState(entry.layerName);
