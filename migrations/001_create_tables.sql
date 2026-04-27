@@ -6,9 +6,11 @@
 
 CREATE EXTENSION IF NOT EXISTS postgis;
 
+CREATE TYPE "sync_status_enum" AS ENUM ('SYNCING', 'READY');
+
 CREATE TABLE IF NOT EXISTS sync_state (
   layer_name  TEXT PRIMARY KEY,
-  status      TEXT NOT NULL DEFAULT 'SYNCING',
+  status      "sync_status_enum" NOT NULL DEFAULT 'SYNCING'::"sync_status_enum",
   last_sequence TEXT NOT NULL DEFAULT '0',
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -16,7 +18,7 @@ CREATE TABLE IF NOT EXISTS sync_state (
 CREATE TABLE IF NOT EXISTS layer_objects (
   layer_name  TEXT NOT NULL,
   id          TEXT NOT NULL,
-  footprint   geometry(Polygon, 4326) NOT NULL,
+  footprint   geometry NOT NULL,
   properties  JSONB NOT NULL DEFAULT '{}'::jsonb,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (layer_name, id),

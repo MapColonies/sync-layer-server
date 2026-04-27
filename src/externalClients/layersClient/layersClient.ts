@@ -36,7 +36,7 @@ export async function fetchPage(layerName: string, sequence: string): Promise<Th
           'requesting-sys-name': config.requestingSystemName,
           sequence,
           'page-size': String(config.pageSize),
-          Authorization: config.auth.token,
+          Authorization: config.authToken,
           'use-Delete-Entities': String(config.useDeleteEntities),
         },
         body: JSON.stringify({ query: buildLayerQuery(layerName) }),

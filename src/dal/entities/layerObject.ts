@@ -1,5 +1,5 @@
 import { Entity, PrimaryColumn, Column, Index, Check } from 'typeorm';
-import type { Polygon } from 'geojson';
+import type { GeoJSON } from 'geojson';
 
 export function getLayerPartitionName(layerName: string): string {
   return `layer_${layerName}`;
@@ -16,8 +16,8 @@ export class LayerObjectEntity {
   public id!: string;
 
   @Index('idx_layer_objects_footprint', { spatial: true })
-  @Column({ type: 'geometry', spatialFeatureType: 'Polygon', srid: 4326 })
-  public footprint!: Polygon;
+  @Column({ type: 'geometry', srid: 4326 })
+  public footprint!: GeoJSON;
 
   @Column({ type: 'jsonb', default: {} })
   public properties!: Record<string, unknown>;
@@ -28,6 +28,6 @@ export class LayerObjectEntity {
 
 export interface LayerObject {
   id: string;
-  footprint: Polygon;
+  footprint: GeoJSON;
   properties: Record<string, unknown>;
 }

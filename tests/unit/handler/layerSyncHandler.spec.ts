@@ -38,7 +38,7 @@ const syncConfig: SyncConfig = {
   requestingSystem: 'sync-layer-server_test',
   requestingSystemName: 'sync-layer-server',
   useDeleteEntities: true,
-  auth: { token: 'token' },
+  authToken: 'token',
   system: { name: 'sync-layer-server', details: { description: '', version: '0.0.0', owner: 'libot' } },
 };
 

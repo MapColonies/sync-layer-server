@@ -8,9 +8,7 @@ export interface SyncConfig {
   requestingSystem: string;
   requestingSystemName: string;
   useDeleteEntities: boolean;
-  auth: {
-    token: string;
-  };
+  authToken: string;
   system: {
     name: string;
     details: {

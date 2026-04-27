@@ -37,17 +37,7 @@
     "requestingSystem": "sync-layer-server_prod",
     "requestingSystemName": "sync-layer-server",
     "useDeleteEntities": true,
-    "auth": {
-      "token": ""
-    },
-    "system": {
-      "name": "sync-layer-server",
-      "details": {
-        "description": "Sync layer service pulling geospatial layers from the third-party API into PostgreSQL",
-        "version": "1.0.0",
-        "owner": "libot"
-      }
-    }
+    "authToken": ""
   },
   "db": {
     "type": "postgres",
