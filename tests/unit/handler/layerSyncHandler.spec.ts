@@ -39,7 +39,6 @@ const syncConfig: SyncConfig = {
   requestingSystemName: 'sync-layer-server',
   useDeleteEntities: true,
   authToken: 'token',
-  system: { name: 'sync-layer-server', details: { description: '', version: '0.0.0', owner: 'libot' } },
 };
 
 function makeLogger(): Logger {
@@ -91,7 +90,7 @@ describe('layerSyncHandler', () => {
       const afterState = makeState({ status: SyncStatus.SYNCING, lastSequence: '10' });
       vi.mocked(syncStateRepository.getSyncState).mockResolvedValueOnce(initialState).mockResolvedValueOnce(afterState);
 
-      const objects = [{ id: 'a', footprint: { type: 'Polygon', coordinates: [] }, properties: {} }] as ThirdPartyResponse['objects'];
+      const objects = [{ id: 'a', geom: { type: 'Polygon', coordinates: [] }, properties: {} }] as ThirdPartyResponse['objects'];
       vi.mocked(layerClient.fetchPage).mockResolvedValue(
         makeResponse({ nextSequence: '10', fetchedCount: 1, deletedCount: 1, deletedIds: ['old-1'], objects })
       );

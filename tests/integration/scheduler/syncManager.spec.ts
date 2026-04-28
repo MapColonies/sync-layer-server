@@ -28,7 +28,6 @@ const syncConfig: SyncConfig = {
   requestingSystemName: 'sync-layer-server',
   useDeleteEntities: true,
   authToken: 'token',
-  system: { name: 'sync-layer-server', details: { description: '', version: '0.0.0', owner: 'libot' } },
 };
 
 function makeLogger(): Logger {

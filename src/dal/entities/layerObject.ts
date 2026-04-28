@@ -6,8 +6,8 @@ export function getLayerPartitionName(layerName: string): string {
 }
 
 @Entity('layer_objects')
-@Check('layer_objects_valid_geometry', `ST_IsValid("footprint")`)
-@Check('layer_objects_extent', `Box2D("footprint") @ Box2D(ST_GeomFromText('LINESTRING(-180 -90, 180 90)', 4326))`)
+@Check('layer_objects_valid_geometry', `ST_IsValid("geom")`)
+@Check('layer_objects_extent', `Box2D("geom") @ Box2D(ST_GeomFromText('LINESTRING(-180 -90, 180 90)', 4326))`)
 export class LayerObjectEntity {
   @PrimaryColumn({ name: 'layer_name', type: 'text' })
   public layerName!: string;
@@ -15,9 +15,9 @@ export class LayerObjectEntity {
   @PrimaryColumn({ type: 'text' })
   public id!: string;
 
-  @Index('idx_layer_objects_footprint', { spatial: true })
+  @Index('idx_layer_objects_geom', { spatial: true })
   @Column({ type: 'geometry', srid: 4326 })
-  public footprint!: GeoJSON;
+  public geom!: GeoJSON;
 
   @Column({ type: 'jsonb', default: {} })
   public properties!: Record<string, unknown>;
@@ -28,6 +28,6 @@ export class LayerObjectEntity {
 
 export interface LayerObject {
   id: string;
-  footprint: GeoJSON;
+  geom: GeoJSON;
   properties: Record<string, unknown>;
 }

@@ -12,7 +12,7 @@ The layer data schema uses **native PostgreSQL LIST partitioning**: there is a s
 
 - `**migrations/001_create_tables.sql`\*\* - bootstrap SQL creating:
   - `sync_state` - shared table tracking per-layer sync status (`layer_name`, `status`, `last_sequence`, `updated_at`).
-  - `layer_objects` - LIST-partitioned **parent** table keyed by `layer_name`, with composite PK `(layer_name, id)` and columns `footprint` (PostGIS `geometry(Polygon, 4326) NOT NULL`) and `properties` (JSONB). `footprint` has a GiST spatial index and `CHECK` constraints enforcing validity (`ST_IsValid`) and world-extent (`Box2D ... @ Box2D(...)`). Requires the `postgis` extension. The parent stores no rows - each layer's data lives in its own partition.
+  - `layer_objects` - LIST-partitioned **parent** table keyed by `layer_name`, with composite PK `(layer_name, id)` and columns `geom` (PostGIS `geometry(Polygon, 4326) NOT NULL`) and `properties` (JSONB). `geom` has a GiST spatial index and `CHECK` constraints enforcing validity (`ST_IsValid`) and world-extent (`Box2D ... @ Box2D(...)`). Requires the `postgis` extension. The parent stores no rows - each layer's data lives in its own partition.
   - Per-layer partitions (`layer_<name>`) are **not** in the migration; they are created at runtime by `ensureLayerPartitions()` based on `sync.layers`.
 
 ### Config
@@ -35,7 +35,7 @@ The layer data schema uses **native PostgreSQL LIST partitioning**: there is a s
 - `**src/dal/entities/syncState.ts**` - `SyncStateEntry` `@Entity('sync_state')` class with `layerName`, `status`, `lastSequence`, `updatedAt` columns (plus the existing `SyncStatus` enum).
 - `**src/dal/entities/layerObject.ts**` - a **single** `LayerObjectEntity` mapped to the partitioned parent `layer_objects`:
   - Composite primary key `(layer_name, id)` (required because `layer_name` is the partition key).
-  - Columns: `footprint geometry(Polygon, 4326) NOT NULL` (PostGIS) with a GiST spatial index and validity / world-extent `CHECK` constraints, `properties JSONB NOT NULL DEFAULT '{}'`, `created_at TIMESTAMPTZ NOT NULL DEFAULT now()`.
+  - Columns: `geom geometry(Polygon, 4326) NOT NULL` (PostGIS) with a GiST spatial index and validity / world-extent `CHECK` constraints, `properties JSONB NOT NULL DEFAULT '{}'`, `created_at TIMESTAMPTZ NOT NULL DEFAULT now()`.
   - `getLayerPartitionName(layerName)` helper returns the child-partition name (`layer_<layerName>`), used by `ensureLayerPartitions()`.
   - `LayerObject` domain type for the external API.
 - `**src/dal/entities/index.ts`\*\* - re-exports the entity class, the partition-name helper, and the types.
@@ -44,7 +44,7 @@ The layer data schema uses **native PostgreSQL LIST partitioning**: there is a s
 
 - `**src/dal/repositories/syncStateRepository.ts**` - unchanged shape, backed by the shared `sync_state` table.
 - `**src/dal/repositories/layerDataRepository.ts**` - layer-aware via the `layer_name` column, **not** via dynamic entities or table names:
-  - `insertObjects(layerName, objects)` - bulk insert into `layer_objects` with `layer_name` stamped on every row; uses `orIgnore()` (`ON CONFLICT DO NOTHING`) so sync retries/replays are idempotent. Postgres routes each row to the `layer_<layerName>` partition automatically; `footprint` values coming in as GeoJSON Polygons are converted to PostGIS geometry by the `pg` driver.
+  - `insertObjects(layerName, objects)` - bulk insert into `layer_objects` with `layer_name` stamped on every row; uses `orIgnore()` (`ON CONFLICT DO NOTHING`) so sync retries/replays are idempotent. Postgres routes each row to the `layer_<layerName>` partition automatically; `geom` values coming in as GeoJSON Polygons are converted to PostGIS geometry by the `pg` driver.
   - `deleteDeprecatedObjects(layerName, deletedIds)` - batch `DELETE FROM layer_objects WHERE layer_name = :layerName AND id IN (:...ids)`. Partition pruning limits the delete to the matching partition.
 
 ### Wiring

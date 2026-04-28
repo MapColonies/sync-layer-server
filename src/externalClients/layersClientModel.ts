@@ -5,7 +5,7 @@ export function buildLayerQuery(layerName: string): string {
   return `query {
   ${layerName} {
     id
-    footprint: geometry
+    geom
     properties
   }
 }`;

@@ -9,12 +9,4 @@ export interface SyncConfig {
   requestingSystemName: string;
   useDeleteEntities: boolean;
   authToken: string;
-  system: {
-    name: string;
-    details: {
-      description: string;
-      version: string;
-      owner: string;
-    };
-  };
 }
