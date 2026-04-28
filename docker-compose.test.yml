@@ -1,0 +1,15 @@
+services:
+  postgis:
+    image: postgis/postgis:15-3.4-alpine
+    container_name: sync-layer-server-test-db
+    ports:
+      - '55432:5432'
+    environment:
+      POSTGRES_DB: sync_layer_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d sync_layer_test']
+      interval: 1s
+      timeout: 5s
+      retries: 30

@@ -1,24 +1,27 @@
 import type { Logger } from '@map-colonies/js-logger';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ScheduleEntry, SyncConfig } from '@src/types';
-import { SyncStatus } from '@src/types';
+import { TEST_DB_HOST, TEST_DB_PORT, TEST_DB_USER, TEST_DB_PASSWORD, TEST_DB_NAME } from '@tests/configurations/testDb';
 
 vi.mock('@src/common/syncConfig', () => ({ getSyncConfig: vi.fn() }));
-vi.mock('@src/dal/repositories/syncStateRepository', () => ({
-  initializeSyncState: vi.fn(),
-  getAllSyncStates: vi.fn(),
-}));
+vi.mock('@src/common/dbConfig', () => ({ getDbConfig: vi.fn() }));
 vi.mock('@src/handler/layerSyncHandler', () => ({
   fetchAndSyncLayerPage: vi.fn(),
 }));
 
 import { SyncManager } from '@src/scheduler/syncManager';
 import { getSyncConfig } from '@src/common/syncConfig';
-import * as syncStateRepository from '@src/dal/repositories/syncStateRepository';
+import { getDbConfig } from '@src/common/dbConfig';
+import { closeDb, getDataSource, initializeDb } from '@src/dal/connection';
+import { getAllSyncStates } from '@src/dal/repositories/syncStateRepository';
+import { SyncStateEntry } from '@src/dal/entities/syncState';
+import { SyncStatus } from '@src/types';
 import * as layerSyncHandler from '@src/handler/layerSyncHandler';
 
+const TEST_LAYERS = ['layer_alpha', 'layer_beta'];
+
 const syncConfig: SyncConfig = {
-  layers: ['a', 'b'],
+  layers: TEST_LAYERS,
   syncIntervalMs: 10,
   pollIntervalMs: 1_000_000,
   pageSize: 100,
@@ -42,22 +45,35 @@ function makeLogger(): Logger {
   } as unknown as Logger;
 }
 
-function makeStateRow(layerName: string): { layerName: string; status: SyncStatus; lastSequence: string; updatedAt: Date } {
-  return { layerName, status: SyncStatus.SYNCING, lastSequence: '0', updatedAt: new Date() };
-}
-
 describe('integration: SyncManager', () => {
-  beforeEach(() => {
+  beforeAll(async () => {
+    vi.mocked(getDbConfig).mockReturnValue({
+      type: 'postgres',
+      host: TEST_DB_HOST,
+      port: TEST_DB_PORT,
+      username: TEST_DB_USER,
+      password: TEST_DB_PASSWORD,
+      database: TEST_DB_NAME,
+      enableSslAuth: false,
+    });
+
+    await initializeDb(TEST_LAYERS);
+  });
+
+  afterAll(async () => {
+    await closeDb();
+  });
+
+  beforeEach(async () => {
     vi.mocked(getSyncConfig).mockReturnValue(syncConfig);
-    vi.mocked(syncStateRepository.initializeSyncState).mockResolvedValue(undefined);
-    vi.mocked(syncStateRepository.getAllSyncStates).mockResolvedValue([makeStateRow('a'), makeStateRow('b')]);
+    await getDataSource().getRepository(SyncStateEntry).clear();
   });
 
   afterEach(() => {
     vi.resetAllMocks();
   });
 
-  it('initializes sync state, processes each layer at least once, then stops cleanly', async () => {
+  it('persists sync state rows in the DB and processes each layer at least once', async () => {
     vi.mocked(layerSyncHandler.fetchAndSyncLayerPage).mockImplementation(async (_logger, entry: ScheduleEntry) => {
       entry.nextRunAt = Date.now() + 10_000_000;
       return Promise.resolve();
@@ -69,25 +85,29 @@ describe('integration: SyncManager', () => {
     await vi.waitFor(
       () => {
         const processed = vi.mocked(layerSyncHandler.fetchAndSyncLayerPage).mock.calls.map((c) => (c[1] as ScheduleEntry).layerName);
-        expect(processed).toContain('a');
-        expect(processed).toContain('b');
+        expect(processed).toContain('layer_alpha');
+        expect(processed).toContain('layer_beta');
       },
       { timeout: 2000, interval: 10 }
     );
 
     await manager.stop();
 
-    expect(syncStateRepository.initializeSyncState).toHaveBeenCalledWith(['a', 'b']);
-    expect(syncStateRepository.getAllSyncStates).toHaveBeenCalledTimes(1);
+    const stored = await getAllSyncStates();
+    const byName = Object.fromEntries(stored.map((s) => [s.layerName, s]));
+
+    expect(stored).toHaveLength(2);
+    expect(byName['layer_alpha']?.status).toBe(SyncStatus.SYNCING);
+    expect(byName['layer_alpha']?.lastSequence).toBe('0');
+    expect(byName['layer_beta']?.status).toBe(SyncStatus.SYNCING);
+    expect(byName['layer_beta']?.lastSequence).toBe('0');
   });
 
   it('processes the entry with the smaller nextRunAt first when re-scheduling', async () => {
     const seen: string[] = [];
     vi.mocked(layerSyncHandler.fetchAndSyncLayerPage).mockImplementation(async (_logger, entry: ScheduleEntry) => {
       seen.push(entry.layerName);
-      // Layer 'a' gets pushed far into the future; layer 'b' re-runs soon.
-      // After both have had their first turn, the heap must pop 'b' next because it has the smaller nextRunAt.
-      entry.nextRunAt = Date.now() + (entry.layerName === 'a' ? 10_000_000 : 20);
+      entry.nextRunAt = Date.now() + (entry.layerName === 'layer_alpha' ? 10_000_000 : 20);
       return Promise.resolve();
     });
 
@@ -98,7 +118,32 @@ describe('integration: SyncManager', () => {
 
     await manager.stop();
 
-    expect(seen.slice(0, 2).sort()).toEqual(['a', 'b']);
-    expect(seen[2]).toBe('b');
+    expect(seen.slice(0, 2).sort()).toEqual(['layer_alpha', 'layer_beta']);
+    expect(seen[2]).toBe('layer_beta');
+  });
+
+  it('initializeSyncState is idempotent across runs (orIgnore)', async () => {
+    vi.mocked(layerSyncHandler.fetchAndSyncLayerPage).mockImplementation(async (_logger, entry: ScheduleEntry) => {
+      entry.nextRunAt = Date.now() + 10_000_000;
+      return Promise.resolve();
+    });
+
+    const first = new SyncManager(makeLogger());
+    await first.start();
+    await vi.waitFor(
+      async () => {
+        const rows = await getAllSyncStates();
+        expect(rows).toHaveLength(2);
+      },
+      { timeout: 2000, interval: 20 }
+    );
+    await first.stop();
+
+    const second = new SyncManager(makeLogger());
+    await second.start();
+    await second.stop();
+
+    const stored = await getAllSyncStates();
+    expect(stored).toHaveLength(2);
   });
 });

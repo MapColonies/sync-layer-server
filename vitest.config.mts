@@ -37,8 +37,11 @@ export default defineConfig({
         test: {
           name: 'integration',
           setupFiles: ['./tests/configurations/vite.setup.ts'],
+          globalSetup: ['./tests/configurations/global-setup.ts'],
           include: ['tests/integration/**/*.spec.ts'],
           environment: 'node',
+          testTimeout: 60_000,
+          hookTimeout: 120_000,
         },
         resolve: {
           alias: pathAlias,
