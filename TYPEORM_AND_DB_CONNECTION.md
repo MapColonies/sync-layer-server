@@ -10,14 +10,14 @@ The layer data schema uses **native PostgreSQL LIST partitioning**: there is a s
 
 ### Database schema
 
-- `**migrations/001_create_tables.sql`** - bootstrap SQL creating:
-  - `sync_state` - shared table tracking per-layer sync status (`layer_name`, `status`, `last_offset`, `updated_at`).
-  - `layer_objects` - LIST-partitioned **parent** table keyed by `layer_name`, with composite PK `(layer_name, id)` and columns `footprint` (PostGIS `geometry(Polygon, 4326) NOT NULL`) and `properties` (JSONB). `footprint` has a GiST spatial index and `CHECK` constraints enforcing validity (`ST_IsValid`) and world-extent (`Box2D ... @ Box2D(...)`). Requires the `postgis` extension. The parent stores no rows - each layer's data lives in its own partition.
+- `**migrations/001_create_tables.sql`\*\* - bootstrap SQL creating:
+  - `sync_state` - shared table tracking per-layer sync status (`layer_name`, `status`, `last_sequence`, `updated_at`).
+  - `layer_objects` - LIST-partitioned **parent** table keyed by `layer_name`, with composite PK `(layer_name, id)` and columns `geom` (PostGIS `geometry(Polygon, 4326) NOT NULL`) and `properties` (JSONB). `geom` has a GiST spatial index and `CHECK` constraints enforcing validity (`ST_IsValid`) and world-extent (`Box2D ... @ Box2D(...)`). Requires the `postgis` extension. The parent stores no rows - each layer's data lives in its own partition.
   - Per-layer partitions (`layer_<name>`) are **not** in the migration; they are created at runtime by `ensureLayerPartitions()` based on `sync.layers`.
 
 ### Config
 
-- `**config/default.json`** - new `db` section (host, port, database, username, password, ssl).
+- `**config/default.json`\*\* - new `db` section (host, port, database, username, password, ssl).
 - `**src/types/dbConfig.ts**` - `DbConfig` interface.
 - `**src/common/dbConfig.ts**` - `getDbConfig()` helper, mirrors the existing `getSyncConfig()` pattern on top of `@map-colonies/config`.
 
@@ -32,24 +32,24 @@ The layer data schema uses **native PostgreSQL LIST partitioning**: there is a s
 
 ### Entities
 
-- `**src/dal/entities/syncState.ts**` - `SyncStateEntry` `@Entity('sync_state')` class with `layerName`, `status`, `lastOffset`, `updatedAt` columns (plus the existing `SyncStatus` enum).
+- `**src/dal/entities/syncState.ts**` - `SyncStateEntry` `@Entity('sync_state')` class with `layerName`, `status`, `lastSequence`, `updatedAt` columns (plus the existing `SyncStatus` enum).
 - `**src/dal/entities/layerObject.ts**` - a **single** `LayerObjectEntity` mapped to the partitioned parent `layer_objects`:
   - Composite primary key `(layer_name, id)` (required because `layer_name` is the partition key).
-  - Columns: `footprint geometry(Polygon, 4326) NOT NULL` (PostGIS) with a GiST spatial index and validity / world-extent `CHECK` constraints, `properties JSONB NOT NULL DEFAULT '{}'`, `created_at TIMESTAMPTZ NOT NULL DEFAULT now()`.
+  - Columns: `geom geometry(Polygon, 4326) NOT NULL` (PostGIS) with a GiST spatial index and validity / world-extent `CHECK` constraints, `properties JSONB NOT NULL DEFAULT '{}'`, `created_at TIMESTAMPTZ NOT NULL DEFAULT now()`.
   - `getLayerPartitionName(layerName)` helper returns the child-partition name (`layer_<layerName>`), used by `ensureLayerPartitions()`.
-  - `LayerObject` / `DeprecatedObject` domain types for the external API.
-- `**src/dal/entities/index.ts`** - re-exports the entity class, the partition-name helper, and the types.
+  - `LayerObject` domain type for the external API.
+- `**src/dal/entities/index.ts`\*\* - re-exports the entity class, the partition-name helper, and the types.
 
 ### Repositories (DB-backed, async)
 
 - `**src/dal/repositories/syncStateRepository.ts**` - unchanged shape, backed by the shared `sync_state` table.
 - `**src/dal/repositories/layerDataRepository.ts**` - layer-aware via the `layer_name` column, **not** via dynamic entities or table names:
-  - `insertObjects(layerName, objects)` - bulk insert into `layer_objects` with `layer_name` stamped on every row; uses `orIgnore()` (`ON CONFLICT DO NOTHING`) so sync retries/replays are idempotent. Postgres routes each row to the `layer_<layerName>` partition automatically; `footprint` values coming in as GeoJSON Polygons are converted to PostGIS geometry by the `pg` driver.
-  - `deleteDeprecatedObjects(layerName, deprecated)` - batch `DELETE FROM layer_objects WHERE layer_name = :layerName AND id IN (:...ids)`. Partition pruning limits the delete to the matching partition.
+  - `insertObjects(layerName, objects)` - bulk insert into `layer_objects` with `layer_name` stamped on every row; uses `orIgnore()` (`ON CONFLICT DO NOTHING`) so sync retries/replays are idempotent. Postgres routes each row to the `layer_<layerName>` partition automatically; `geom` values coming in as GeoJSON Polygons are converted to PostGIS geometry by the `pg` driver.
+  - `deleteDeprecatedObjects(layerName, deletedIds)` - batch `DELETE FROM layer_objects WHERE layer_name = :layerName AND id IN (:...ids)`. Partition pruning limits the delete to the matching partition.
 
 ### Wiring
 
-- `**src/containerConfig.ts`** - reads `sync.layers` via `getSyncConfig()`, calls `await initializeDb(syncConfig.layers)` during bootstrap, logs the connection target + active layer partitions, and calls `closeDb()` alongside `getTracing().stop()` in the `onSignal` shutdown hook.
+- `**src/containerConfig.ts`\*\* - reads `sync.layers` via `getSyncConfig()`, calls `await initializeDb(syncConfig.layers)` during bootstrap, logs the connection target + active layer partitions, and calls `closeDb()` alongside `getTracing().stop()` in the `onSignal` shutdown hook.
 - `**src/handler/layerSyncHandler.ts**` - awaits all now-async repository calls.
 - `**src/scheduler/syncManager.ts**` - `start()` is now `async` and awaits state initialization / reads.
 - `**src/index.ts**` - `void syncManager.start()` to keep the fire-and-forget semantics.
@@ -66,13 +66,17 @@ The layer data schema uses **native PostgreSQL LIST partitioning**: there is a s
 To onboard a new layer (e.g. `roads`):
 
 1. Add it to `sync.layers` in `config/default.json` (or the env-specific config):
-  ```json
-   "sync": { "layers": ["obstacles", "roads"], ... }
-  ```
+
+```json
+ "sync": { "layers": ["obstacles", "roads"], ... }
+```
+
 2. Restart the service. On startup, `ensureLayerPartitions()` will run:
-  ```sql
-   CREATE TABLE IF NOT EXISTS "layer_roads" PARTITION OF layer_objects FOR VALUES IN ('roads');
-  ```
+
+```sql
+ CREATE TABLE IF NOT EXISTS "layer_roads" PARTITION OF layer_objects FOR VALUES IN ('roads');
+```
+
 3. No code changes are required - `insertObjects('roads', ...)` and `deleteDeprecatedObjects('roads', ...)` already take `layerName` as a parameter, and Postgres routes writes to `layer_roads` based on the `layer_name` column.
 
 ## Why LIST partitioning (and not per-layer tables or a flat table)
@@ -84,7 +88,6 @@ To onboard a new layer (e.g. `roads`):
 This matches the documented best-practice profile for LIST partitioning: a small, bounded set of discrete values (our layer names), a shared schema, and an access pattern that always filters on the partition key.
 
 ## Files changed
-
 
 | File                                          | Change                                                                                                    |
 | --------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
@@ -106,7 +109,6 @@ This matches the documented best-practice profile for LIST partitioning: a small
 | `src/containerConfig.ts`                      | `initializeDb(syncConfig.layers)` on boot, `closeDb()` on signal                                          |
 | `package.json`                                | + `pg`, `typeorm`                                                                                         |
 
-
 ## Migration / rollout
 
 1. Apply `migrations/001_create_tables.sql` against the target PostgreSQL database (creates `sync_state` and the partitioned `layer_objects` parent). Per-layer partitions are created automatically on first startup.
@@ -121,4 +123,3 @@ This matches the documented best-practice profile for LIST partitioning: a small
 - The partition key `layer_name` is part of the primary key (required by Postgres for partitioned tables), so `(layer_name, id)` is the effective uniqueness constraint across the whole logical dataset.
 - Layer names come from trusted config (`sync.layers`); they are interpolated into the `CREATE TABLE … PARTITION OF …` DDL in `ensureLayerPartitions()` - keep `sync.layers` out of any user-controlled input path.
 - No HTTP routes were added; the service remains a background sync worker behind Terminus and Express middleware.
-

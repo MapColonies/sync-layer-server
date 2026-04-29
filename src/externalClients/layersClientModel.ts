@@ -1,18 +1,12 @@
-export const GET_LAYER_PAGE = `
-  query GetLayerPage($layerName: String!, $offset: Int!, $pageSize: Int!) {
-    layerPage(layerName: $layerName, offset: $offset, pageSize: $pageSize) {
-      totalCount
-      returnedCount
-      nextRecord
-      objects {
-        id
-        footprint: geometry
-        properties
-      }
-      deprecated {
-        id
-        updatedFields
-      }
-    }
+// The third-party API uses the layer name itself as the root query field.
+// Pagination/auth inputs are passed via HTTP headers, not GraphQL variables.
+// TODO: finalize selection set once the third-party schema is confirmed.
+export function buildLayerQuery(layerName: string): string {
+  return `query {
+  ${layerName} {
+    id
+    geom
+    properties
   }
-`;
+}`;
+}

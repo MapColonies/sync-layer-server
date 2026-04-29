@@ -1,7 +1,12 @@
+import { trace } from '@opentelemetry/api';
+import { asyncCallWithSpan } from '@map-colonies/tracing-utils';
 import type { ObjectLiteral, Repository } from 'typeorm';
-import type { DeprecatedObject, LayerObject } from '../entities';
+import type { LayerObject } from '../entities';
 import { LayerObjectEntity } from '../entities';
 import { getDataSource } from '../connection';
+import { SERVICE_NAME } from '../../common/constants';
+
+const tracer = trace.getTracer(SERVICE_NAME);
 
 function getRepository(): Repository<LayerObjectEntity> {
   return getDataSource().getRepository(LayerObjectEntity);
@@ -13,28 +18,38 @@ export async function insertObjects(layerName: string, objects: LayerObject[]): 
   const rows = objects.map((o) => ({
     layerName,
     id: o.id,
-    footprint: o.footprint,
+    geom: o.geom,
     properties: o.properties,
   }));
 
-  await getRepository()
-    .createQueryBuilder()
-    .insert()
-    .into(LayerObjectEntity)
-    .values(rows as unknown as ObjectLiteral[])
-    .orIgnore()
-    .execute();
+  await asyncCallWithSpan(
+    async () => {
+      await getRepository()
+        .createQueryBuilder()
+        .insert()
+        .into(LayerObjectEntity)
+        .values(rows as unknown as ObjectLiteral[])
+        .orIgnore()
+        .execute();
+    },
+    tracer,
+    'layerDataRepository.insertObjects'
+  );
 }
 
-export async function deleteDeprecatedObjects(layerName: string, deprecated: DeprecatedObject[]): Promise<void> {
-  if (deprecated.length === 0) return;
+export async function deleteDeprecatedObjects(layerName: string, deletedIds: string[]): Promise<void> {
+  if (deletedIds.length === 0) return;
 
-  const ids = deprecated.map((o) => o.id);
-
-  await getRepository()
-    .createQueryBuilder()
-    .delete()
-    .from(LayerObjectEntity)
-    .where('layer_name = :layerName AND id IN (:...ids)', { layerName, ids })
-    .execute();
+  await asyncCallWithSpan(
+    async () => {
+      await getRepository()
+        .createQueryBuilder()
+        .delete()
+        .from(LayerObjectEntity)
+        .where('layer_name = :layerName AND id IN (:...ids)', { layerName, ids: deletedIds })
+        .execute();
+    },
+    tracer,
+    'layerDataRepository.deleteDeprecatedObjects'
+  );
 }
