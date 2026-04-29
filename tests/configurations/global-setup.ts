@@ -18,7 +18,7 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
   process.env.DB_NAME = 'sync_layer_test';
   process.env.DB_ENABLE_SSL = 'false';
 
-  const { SyncLayerDataSource } = await import('@src/dal/db.data-source.js');
+  const { default: SyncLayerDataSource } = await import('@src/dal/db.data-source.js');
 
   try {
     await SyncLayerDataSource.initialize();
