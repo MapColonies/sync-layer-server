@@ -40,8 +40,8 @@ export default defineConfig({
           globalSetup: ['./tests/configurations/global-setup.ts'],
           include: ['tests/integration/**/*.spec.ts'],
           environment: 'node',
-          testTimeout: 60_000,
-          hookTimeout: 120_000,
+          testTimeout: 30_000,
+          hookTimeout: 60_000,
         },
         resolve: {
           alias: pathAlias,

@@ -21,7 +21,11 @@
     "start:dev": "npm run build && cd dist && cross-env CONFIG_OFFLINE_MODE=true  node --enable-source-maps --import ./instrumentation.mjs ./index.js",
     "assets:copy": "copyfiles -f ./config/* ./dist/config && copyfiles ./package.json dist",
     "clean": "rimraf dist",
-    "prepare": "node .husky/install.mjs"
+    "prepare": "node .husky/install.mjs",
+    "typeorm": "ts-node --esm ./node_modules/typeorm/cli.js",
+    "migration:create": "npm run typeorm -- migration:generate -d src/dal/db.data-source.ts",
+    "migration:run": "npm run typeorm -- migration:run -d src/dal/db.data-source.ts",
+    "migration:revert": "npm run typeorm -- migration:revert -d src/dal/db.data-source.ts"
   },
   "directories": {
     "test": "tests"
@@ -76,6 +80,7 @@
     "rimraf": "^6.1.2",
     "supertest": "^7.2.2",
     "ts-jest": "^29.2.6",
+    "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.11",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
