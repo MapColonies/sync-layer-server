@@ -3,7 +3,7 @@ import dockerCompose from 'docker-compose';
 import { DataSource } from 'typeorm';
 import { LayerObjectEntity } from '@src/dal/entities/layerObject';
 import { SyncStateEntry } from '@src/dal/entities/syncState';
-import { CreateTables1713196800000 } from '@src/dal/migrations/1713196800000-CreateTables';
+import { InitialSchema1777420800000 } from '@src/dal/migrations/1777420800000-InitialSchema';
 import globalTeardown from './global-teardown';
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
@@ -28,7 +28,7 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
     password: 'postgres',
     database: 'sync_layer_test',
     entities: [SyncStateEntry, LayerObjectEntity],
-    migrations: [CreateTables1713196800000],
+    migrations: [InitialSchema1777420800000],
     synchronize: false,
     logging: false,
     ssl: false,

@@ -1,7 +1,7 @@
 import type { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateTables1713196800000 implements MigrationInterface {
-  public name = 'CreateTables1713196800000';
+export class InitialSchema1777420800000 implements MigrationInterface {
+  public name = 'InitialSchema1777420800000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS postgis`);
