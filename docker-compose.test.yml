@@ -9,7 +9,8 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres -d sync_layer_test']
+      test: ['CMD-SHELL', 'psql -U postgres -d sync_layer_test -c "SELECT 1" >/dev/null 2>&1']
       interval: 1s
       timeout: 5s
-      retries: 30
+      retries: 60
+      start_period: 15s

@@ -34,23 +34,16 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
     ssl: false,
   });
 
-  let lastErr: unknown;
-  for (let attempt = 1; attempt <= 30; attempt++) {
-    try {
-      await AppDataSource.initialize();
-      await AppDataSource.runMigrations();
-      console.log('✅ Migrations completed');
-      lastErr = undefined;
-      break;
-    } catch (err) {
-      lastErr = err;
-      if (AppDataSource.isInitialized) await AppDataSource.destroy();
-      await new Promise((r) => setTimeout(r, 1000));
+  try {
+    await AppDataSource.initialize();
+    await AppDataSource.runMigrations();
+    console.log('✅ Migrations completed');
+  } catch (err) {
+    console.warn('⚠️  Migration initialization warning:', err instanceof Error ? err.message : String(err));
+  } finally {
+    if (AppDataSource.isInitialized) {
+      await AppDataSource.destroy();
     }
-  }
-  if (AppDataSource.isInitialized) await AppDataSource.destroy();
-  if (lastErr !== undefined) {
-    console.warn('⚠️  Migration initialization warning:', lastErr instanceof Error ? lastErr.message : String(lastErr));
   }
   console.log('🚀 Environment ready for tests');
 
