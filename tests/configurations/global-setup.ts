@@ -13,7 +13,7 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
   await dockerCompose.upAll({
     cwd: REPO_ROOT,
     config: 'docker-compose.test.yml',
-    commandOptions: ['--remove-orphans'],
+    commandOptions: ['--remove-orphans', '--wait'],
   });
 
   await new Promise((resolve) => setTimeout(resolve, 3000));
