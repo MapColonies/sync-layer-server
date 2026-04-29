@@ -1,13 +1,12 @@
-import { readFileSync } from 'fs';
 import path from 'path';
 import dockerCompose from 'docker-compose';
 import { DataSource } from 'typeorm';
 import { LayerObjectEntity } from '@src/dal/entities/layerObject';
 import { SyncStateEntry } from '@src/dal/entities/syncState';
+import { CreateTables1713196800000 } from '@src/dal/migrations/1713196800000-CreateTables';
 import globalTeardown from './global-teardown';
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
-const MIGRATION_FILE = path.join(REPO_ROOT, 'migrations', '001_create_tables.sql');
 
 export default async function globalSetup(): Promise<() => Promise<void>> {
   console.log('🟢 Starting Docker containers...');
@@ -21,7 +20,6 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
 
   console.log('⏳ Initializing database schema...');
 
-  // Create a temporary DataSource just to run the migration SQL
   const AppDataSource = new DataSource({
     type: 'postgres',
     host: '127.0.0.1',
@@ -30,6 +28,7 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
     password: 'postgres',
     database: 'sync_layer_test',
     entities: [SyncStateEntry, LayerObjectEntity],
+    migrations: [CreateTables1713196800000],
     synchronize: false,
     logging: false,
     ssl: false,
@@ -37,7 +36,7 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
 
   try {
     await AppDataSource.initialize();
-    await AppDataSource.query(readFileSync(MIGRATION_FILE, 'utf8'));
+    await AppDataSource.runMigrations();
     console.log('✅ Migrations completed');
   } catch (err) {
     console.warn('⚠️  Migration initialization warning:', err instanceof Error ? err.message : String(err));
