@@ -1,8 +1,6 @@
 import type { Logger } from '@map-colonies/js-logger';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ScheduleEntry, SyncConfig } from '@src/types';
-import { TEST_DB_HOST, TEST_DB_PORT, TEST_DB_USER, TEST_DB_PASSWORD, TEST_DB_NAME } from '@tests/configurations/testDb';
-
 vi.mock('@src/common/syncConfig', () => ({ getSyncConfig: vi.fn() }));
 vi.mock('@src/common/dbConfig', () => ({ getDbConfig: vi.fn() }));
 vi.mock('@src/handler/layerSyncHandler', () => ({
@@ -10,6 +8,7 @@ vi.mock('@src/handler/layerSyncHandler', () => ({
 }));
 
 import { SyncManager } from '@src/scheduler/syncManager';
+import { getTestDbConfigFromEnv } from '@tests/configurations/dbFromProcessEnv';
 import { getSyncConfig } from '@src/common/syncConfig';
 import { getDbConfig } from '@src/common/dbConfig';
 import { closeDb, getDataSource, initializeDb } from '@src/dal/connection';
@@ -47,15 +46,7 @@ function makeLogger(): Logger {
 
 describe('integration: SyncManager', () => {
   beforeAll(async () => {
-    vi.mocked(getDbConfig).mockReturnValue({
-      type: 'postgres',
-      host: TEST_DB_HOST,
-      port: TEST_DB_PORT,
-      username: TEST_DB_USER,
-      password: TEST_DB_PASSWORD,
-      database: TEST_DB_NAME,
-      enableSslAuth: false,
-    });
+    vi.mocked(getDbConfig).mockReturnValue(getTestDbConfigFromEnv());
 
     await initializeDb(TEST_LAYERS);
   });

@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import type { DataSource, Repository } from 'typeorm';
 import type { Geometry } from 'geojson';
 import { LayerObjectEntity } from '@src/dal/entities/layerObject';
-import { createTestDataSource } from '@tests/configurations/testDb';
+import { createDataSourceFromTestEnv } from '@tests/configurations/dbFromProcessEnv';
 
 const TEST_LAYER = 'geometry_types_test';
 
@@ -108,7 +108,7 @@ describe('integration: layer_objects accepts every PostGIS geometry subtype', ()
   let repo: Repository<LayerObjectEntity>;
 
   beforeAll(async () => {
-    ds = createTestDataSource();
+    ds = createDataSourceFromTestEnv([LayerObjectEntity]);
     await ds.initialize();
     await ds.query(`CREATE TABLE IF NOT EXISTS "layer_${TEST_LAYER}" PARTITION OF layer_objects FOR VALUES IN ('${TEST_LAYER}')`);
     repo = ds.getRepository(LayerObjectEntity);

@@ -36,5 +36,4 @@ const buildConnectionOptions = (): DataSourceOptions => {
 };
 
 /* eslint-disable @typescript-eslint/naming-convention */
-export const SyncLayerDataSource = new DataSource(buildConnectionOptions());
-export default SyncLayerDataSource;
+export default new DataSource(buildConnectionOptions());

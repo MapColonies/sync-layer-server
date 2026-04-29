@@ -42,6 +42,14 @@ export default defineConfig({
           environment: 'node',
           testTimeout: 30_000,
           hookTimeout: 60_000,
+          env: {
+            DB_HOST: '127.0.0.1',
+            DB_PORT: '55432',
+            DB_USERNAME: 'postgres',
+            DB_PASSWORD: 'postgres',
+            DB_NAME: 'sync_layer_test',
+            DB_ENABLE_SSL: 'false',
+          },
         },
         resolve: {
           alias: pathAlias,
