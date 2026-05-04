@@ -20,9 +20,21 @@ data:
   {{ end }}
   npm_config_cache: /tmp/
   {{- with .Values.configManagement }}
-  CONFIG_NAME: {{ .name| quote }}
+  CONFIG_NAME: {{ .name | quote }}
   CONFIG_VERSION: {{ .version | quote }}
   CONFIG_OFFLINE_MODE: {{ .offlineMode | quote }}
   CONFIG_SERVER_URL: {{ .serverUrl | quote }}
+  {{- end -}}
+  {{- with .Values.env.sync }}
+  LAYERS: {{ .layers | toJson | quote }}
+  SYNC_INTERVAL_MS: {{ .syncIntervalMs | quote }}
+  POLL_INTERVAL_MS: {{ .pollIntervalMs | quote }}
+  PAGE_SIZE: {{ .pageSize | quote }}
+  THIRD_PARTY_BASE_URL: {{ .thirdPartyBaseUrl | quote }}
+  REALITY_ID: {{ .realityId | quote }}
+  REQUESTING_SYSTEM: {{ .requestingSystem | quote }}
+  REQUESTING_SYSTEM_NAME: {{ .requestingSystemName | quote }}
+  USE_DELETE_ENTITIES: {{ .useDeleteEntities | quote }}
+  AUTH_TOKEN: {{ .authToken | quote }}
   {{- end -}}
 {{- end }}
