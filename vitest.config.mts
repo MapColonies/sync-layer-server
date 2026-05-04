@@ -37,8 +37,19 @@ export default defineConfig({
         test: {
           name: 'integration',
           setupFiles: ['./tests/configurations/vite.setup.ts'],
+          globalSetup: ['./tests/configurations/global-setup.ts'],
           include: ['tests/integration/**/*.spec.ts'],
           environment: 'node',
+          testTimeout: 30_000,
+          hookTimeout: 60_000,
+          env: {
+            DB_HOST: '127.0.0.1',
+            DB_PORT: '55432',
+            DB_USERNAME: 'postgres',
+            DB_PASSWORD: 'postgres',
+            DB_NAME: 'sync_layer_test',
+            DB_ENABLE_SSL: 'false',
+          },
         },
         resolve: {
           alias: pathAlias,
