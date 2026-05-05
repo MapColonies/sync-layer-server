@@ -1,16 +1,16 @@
 {{- $releaseName := .Release.Name -}}
-{{- $chartName := include "ts-server-boilerplate.name" . -}}
-{{- $cloudProviderFlavor := include "ts-server-boilerplate.cloudProviderFlavor" . -}}
+{{- $chartName := include "sync-layer-server.name" . -}}
+{{- $cloudProviderFlavor := include "sync-layer-server.cloudProviderFlavor" . -}}
 {{- if .Values.enabled -}}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "ts-server-boilerplate.fullname" . }}
+  name: {{ include "sync-layer-server.fullname" . }}
   labels:
     app: {{ $chartName }}
     component: {{ $chartName }}
     release: {{ $releaseName }}
-    {{- include "ts-server-boilerplate.labels" . | nindent 4 }}
+    {{- include "sync-layer-server.labels" . | nindent 4 }}
 spec:
   {{- if eq $cloudProviderFlavor "minikube" }}
   type: NodePort
@@ -26,6 +26,6 @@ spec:
   selector:
     app: {{ $chartName }}
     release: {{ $releaseName }}
-    run: {{ include "ts-server-boilerplate.fullname" . }}
-    {{- include "ts-server-boilerplate.selectorLabels" . | nindent 4 }}
+    run: {{ include "sync-layer-server.fullname" . }}
+    {{- include "sync-layer-server.selectorLabels" . | nindent 4 }}
 {{- end }}

@@ -64,7 +64,7 @@ caPath: '/usr/local/share/ca-certificates'
 caKey: 'ca.crt'
 
 image:
-  repository: ts-server-boilerplate
+  repository: sync-layer-server
   # If commented, appVersion will be taken. See: _helpers.tpl
   # tag: 'latest'
   pullPolicy: IfNotPresent
@@ -83,6 +83,17 @@ env:
   metrics:
     enabled: false
     url: http://localhost:55681/v1/metrics
+  sync:
+    layers: []
+    syncIntervalMs: 500
+    pollIntervalMs: 600000
+    pageSize: 1000
+    thirdPartyBaseUrl: ''
+    realityId: 0
+    requestingSystem: ''
+    requestingSystemName: ''
+    useDeleteEntities: true
+    authToken: ''
 
 resources:
   enabled: true
