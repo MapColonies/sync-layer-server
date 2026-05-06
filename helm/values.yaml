@@ -2,11 +2,30 @@ global:
   cloudProvider: {}
   tracing: {}
   metrics: {}
+  postgres:
+    # host: 127.0.0.1
+    # port: 5432
+    # schema: public
+    # name: sync_layer
+    user:
+      # requirePassword: true
+      # rejectUnauthorized: true
+      useExternal: true
+      secretName: secret-name
+      # username: postgres
+      # password: postgres
+    ssl:
+      # enabled: false
+      useExternal: true
+      secretName: secret-name
+      # caFileName: caFile
+      # certFileName: certFile
+      # keyFileName: keyFile
 
 mclabels:
   component: backend
-  partOf: boilerplates
-  owner: common
+  partOf: yahalom
+  owner: 3d
   prometheus:
     enabled: true
 
@@ -20,8 +39,8 @@ nameOverride: ""
 fullnameOverride: ""
 
 configManagement:
-  offlineMode: false
-  name: 'service-name'
+  offlineMode: true
+  name: 'sync-layer-server'
   version: 'latest'
   serverUrl: 'http://localhost:8080/api'
 

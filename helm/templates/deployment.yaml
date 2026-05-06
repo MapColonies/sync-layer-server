@@ -1,9 +1,11 @@
 {{- $releaseName := .Release.Name -}}
 {{- $chartName := include "sync-layer-server.name" . -}}
+{{- $fullname := include "sync-layer-server.fullname" . -}}
 {{- $cloudProviderFlavor := include "sync-layer-server.cloudProviderFlavor" . -}}
 {{- $cloudProviderDockerRegistryUrl := include "sync-layer-server.cloudProviderDockerRegistryUrl" . -}}
 {{- $cloudProviderImagePullSecretName := include "sync-layer-server.cloudProviderImagePullSecretName" . -}}
 {{- $imageTag := include "sync-layer-server.tag" . -}}
+{{- $postgres := include "merged.postgres" . | fromYaml -}}
 {{- if .Values.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -44,7 +46,7 @@ spec:
         - name: {{ $cloudProviderImagePullSecretName | quote }}
     {{- end }}
       containers:
-        - name: {{ include "sync-layer-server.fullname" . }}
+        - name: {{ $releaseName }}-{{ $chartName }}-deployment
           {{- with .Values.image }}
           image: {{ $cloudProviderDockerRegistryUrl }}{{ .repository }}:{{ $imageTag }}
           imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
@@ -66,6 +68,11 @@ spec:
             {{- if .Values.extraVolumeMounts -}}
               {{ toYaml .Values.extraVolumeMounts | nindent 12 }}
             {{- end }}
+            {{- if $postgres.ssl.enabled }}
+            - name: cert-conf
+              mountPath: /tmp/certs
+              readOnly: true
+            {{- end }}
           env:
             - name: K8S_POD_UID
               valueFrom:
@@ -81,7 +88,19 @@ spec:
             {{- end }}
             {{- if .Values.extraEnvVars }}
             {{- toYaml .Values.extraEnvVars | nindent 12 }}
-            {{- end }}            
+            {{- end }}
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default (printf "%s-db-secrets" $fullname) $postgres.user.secretName }}
+                  key: username
+            {{- if $postgres.user.requirePassword }}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default (printf "%s-db-secrets" $fullname) $postgres.user.secretName }}
+                  key: password
+            {{- end }}
           envFrom:
             - configMapRef:
                 name: {{ include "sync-layer-server.fullname" . }}
@@ -117,13 +136,23 @@ spec:
       volumes:
         - name: nginx-config
           configMap:
-            name: 'nginx-extra-configmap'      
+            name: 'nginx-extra-configmap'
+        {{- if and $postgres.enabled $postgres.ssl.enabled }}
+        - name: cert-conf
+          secret:
+            secretName: {{ $postgres.ssl.secretName }}
+        {{- end }}
         {{- if .Values.caSecretName }}
         - name: root-ca
           secret:
             secretName: {{ .Values.caSecretName }}
         {{- end }}
+        {{- if $postgres.ssl.enabled }}
+        - name: postgres-cert
+          secret:
+            secretName: {{ $postgres.ssl.secretName }}
+        {{- end }}
         {{- if .Values.extraVolumes -}}
           {{ tpl (toYaml .Values.extraVolumes) . | nindent 8 }}
-        {{- end }}    
+        {{- end }}
 {{- end -}}
