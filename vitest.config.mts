@@ -1,6 +1,6 @@
 import { defineConfig, ViteUserConfig } from 'vitest/config';
 import tsconfig from './tsconfig.json';
-import path from 'path';
+import path from 'node:path';
 
 // Create an alias object from the paths in tsconfig.json
 const pathAlias = Object.fromEntries(

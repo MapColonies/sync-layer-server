@@ -43,7 +43,7 @@
     "type": "postgres",
     "host": "localhost",
     "port": 5432,
-    "database": "postgres",
+    "database": "sync_layer_dev",
     "username": "postgres",
     "password": "postgres",
     "enableSslAuth": false,
