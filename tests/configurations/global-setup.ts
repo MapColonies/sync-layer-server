@@ -21,15 +21,33 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
   const { default: SyncLayerDataSource } = await import('@src/dal/db.data-source.js');
 
   try {
-    await SyncLayerDataSource.initialize();
-    await SyncLayerDataSource.runMigrations();
-    console.log('✅ Migrations completed');
+    SyncLayerDataSource.then((dataSource) => {
+      dataSource
+        .initialize()
+        .then(() => {
+          console.log('✅ Database connection established');
+          return dataSource.runMigrations();
+        })
+        .then(() => {
+          console.log('✅ Migrations completed');
+        })
+        .catch((err) => {
+          console.warn('⚠️  Migration initialization warning:', err instanceof Error ? err.message : String(err));
+        })
+        .finally(() => {
+          if (dataSource.isInitialized) {
+            dataSource
+              .destroy()
+              .then(() => console.log('✅ Database connection closed'))
+              .catch((err) => console.warn('⚠️  Error closing database connection:', err instanceof Error ? err.message : String(err)));
+          }
+        });
+    }).catch((err) => {
+      console.warn('⚠️  Error initializing database connection:', err instanceof Error ? err.message : String(err));
+    });
   } catch (err) {
     console.warn('⚠️  Migration initialization warning:', err instanceof Error ? err.message : String(err));
   } finally {
-    if (SyncLayerDataSource.isInitialized) {
-      await SyncLayerDataSource.destroy();
-    }
   }
   console.log('🚀 Environment ready for tests');
 
