@@ -1,12 +1,36 @@
-// The third-party API uses the layer name itself as the root query field.
+// Third-party API uses the layer name as the root query field.
 // Pagination/auth inputs are passed via HTTP headers, not GraphQL variables.
-// TODO: finalize selection set once the third-party schema is confirmed.
 export function buildLayerQuery(layerName: string): string {
   return `query {
   ${layerName} {
+    createdBy
+    creationTime
+    deleted
+    entityVersion
+    geography {
+      coordinates {
+        latitude
+        longitude
+      }
+      graphicsObjectKind {
+        value
+      }
+      height
+      obstacleHeightsRange {
+        displayName
+      }
+    }
     id
-    geom
-    properties
+    identifiers {
+      essence {
+        displayName
+        value
+      }
+      name
+      number
+    }
+    lastUpdateTime
+    lastUpdatedBy
   }
 }`;
 }
