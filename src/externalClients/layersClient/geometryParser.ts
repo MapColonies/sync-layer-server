@@ -1,4 +1,5 @@
-import type { Geometry, Position } from 'geojson';
+import { point, lineString, polygon } from '@turf/helpers';
+import type { Geometry, LineString, Point, Polygon, Position } from 'geojson';
 
 export interface RawCoordinate {
   latitude: number;
@@ -26,20 +27,20 @@ export function geographyToGeoJSON(geography: RawGeography): Geometry {
 
   switch (kind) {
     case 'POINT':
-      return { type: 'Point', coordinates: toPosition(coords[0]!) };
+      return point(toPosition(coords[0]!)).geometry as Point;
 
     case 'LINE':
     case 'LINESTRING':
       if (coords.length < 2) {
         throw new Error(`LineString requires >=2 coordinates, got ${coords.length}`);
       }
-      return { type: 'LineString', coordinates: coords.map(toPosition) };
+      return lineString(coords.map(toPosition)).geometry as LineString;
 
     case 'POLYGON':
       if (coords.length < 4) {
         throw new Error(`Polygon requires >=4 coordinates (closed ring), got ${coords.length}`);
       }
-      return { type: 'Polygon', coordinates: [coords.map(toPosition)] };
+      return polygon([coords.map(toPosition)]).geometry as Polygon;
 
     default:
       if (MULTI_KINDS.has(kind)) {
