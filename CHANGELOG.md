@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/MapColonies/sync-layer-server/compare/v1.0.0...v1.0.1) (2026-05-20)
+
+
+### Bug Fixes
+
+* fix workflow domain (MAPCO-10525) ([#32](https://github.com/MapColonies/sync-layer-server/issues/32)) ([737227c](https://github.com/MapColonies/sync-layer-server/commit/737227c91b0f09e6f35fc9e2756fa1cf6fabf805))
+
 ## 1.0.0 (2026-05-20)
 
 
