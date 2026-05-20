@@ -1,6 +1,8 @@
 apiVersion: v2
 name: sync-layer-server
-description: Helm chart for the sync-layer-server service, which synchronizes geospatial layers from the third-party API into PostgreSQL
+description: >-
+  Helm chart for the sync-layer-server service, which synchronizes geospatial
+  layers from the third-party API into PostgreSQL
 type: application
 version: 1.0.0
 appVersion: 1.0.0
