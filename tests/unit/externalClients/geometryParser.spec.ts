@@ -80,6 +80,27 @@ describe('geographyToGeoJSON', () => {
       ];
       expect(() => geographyToGeoJSON(geo('POLYGON', ring))).toThrow(/Polygon requires >=4/);
     });
+
+    it('accepts AREA alias as Polygon', () => {
+      const ring = [
+        { latitude: 0, longitude: 0 },
+        { latitude: 0, longitude: 1 },
+        { latitude: 1, longitude: 1 },
+        { latitude: 0, longitude: 0 },
+      ];
+      const result = geographyToGeoJSON(geo('AREA', ring));
+      expect(result).toEqual({
+        type: 'Polygon',
+        coordinates: [
+          [
+            [0, 0],
+            [1, 0],
+            [1, 1],
+            [0, 0],
+          ],
+        ],
+      });
+    });
   });
 
   describe('error cases', () => {

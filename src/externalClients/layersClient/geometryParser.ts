@@ -37,6 +37,7 @@ export function geographyToGeoJSON(geography: RawGeography): Geometry {
       return lineString(coords.map(toPosition)).geometry as LineString;
 
     case 'POLYGON':
+    case 'AREA':
       if (coords.length < 4) {
         throw new Error(`Polygon requires >=4 coordinates (closed ring), got ${coords.length}`);
       }
