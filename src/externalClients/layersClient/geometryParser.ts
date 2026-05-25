@@ -1,4 +1,5 @@
 import { point, lineString, polygon } from '@turf/helpers';
+import type { Logger } from '@map-colonies/js-logger';
 import type { Geometry, LineString, Point, Polygon, Position } from 'geojson';
 
 export interface RawCoordinate {
@@ -17,7 +18,7 @@ function toPosition(c: RawCoordinate): Position {
   return [c.longitude, c.latitude];
 }
 
-export function geographyToGeoJSON(geography: RawGeography): Geometry {
+export function geographyToGeoJSON(logger: Logger, geography: RawGeography): Geometry {
   try {
     const kind = geography.graphicsObjectKind.value.toUpperCase();
     const coords = geography.coordinates;
@@ -46,14 +47,14 @@ export function geographyToGeoJSON(geography: RawGeography): Geometry {
 
       default:
         if (MULTI_KINDS.has(kind)) {
-          console.error('geographyToGeoJSON unsupported MULTI* kind:', JSON.stringify(geography));
+          logger.error({ msg: 'geographyToGeoJSON unsupported MULTI* kind', geography });
           throw new Error(`Unsupported graphicsObjectKind=${kind}: MULTI* encoding not yet documented`);
         }
-        console.error('geographyToGeoJSON unknown kind:', JSON.stringify(geography));
+        logger.error({ msg: 'geographyToGeoJSON unknown kind', geography });
         throw new Error(`Unknown graphicsObjectKind=${kind}`);
     }
   } catch (err) {
-    console.error('geographyToGeoJSON failed for geography:', JSON.stringify(geography));
+    logger.error({ msg: 'geographyToGeoJSON failed', geography, err });
     throw err;
   }
 }
