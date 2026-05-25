@@ -1,15 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Logger } from '@map-colonies/js-logger';
 import { geographyToGeoJSON, type RawGeography } from '@src/externalClients/layersClient/geometryParser';
-
-const logger = {
-  error: () => undefined,
-  info: () => undefined,
-  debug: () => undefined,
-  warn: () => undefined,
-  fatal: () => undefined,
-  trace: () => undefined,
-} as unknown as Logger;
 
 function geo(kind: string, coords: { latitude: number; longitude: number }[]): RawGeography {
   return { coordinates: coords, graphicsObjectKind: { value: kind } };
@@ -18,12 +8,12 @@ function geo(kind: string, coords: { latitude: number; longitude: number }[]): R
 describe('geographyToGeoJSON', () => {
   describe('POINT', () => {
     it('maps single coordinate to Point with [lng, lat] order', () => {
-      const result = geographyToGeoJSON(logger, geo('POINT', [{ latitude: 32.0853, longitude: 34.7818 }]));
+      const result = geographyToGeoJSON(geo('POINT', [{ latitude: 32.0853, longitude: 34.7818 }]));
       expect(result).toEqual({ type: 'Point', coordinates: [34.7818, 32.0853] });
     });
 
     it('accepts lowercase kind', () => {
-      const result = geographyToGeoJSON(logger, geo('point', [{ latitude: 1, longitude: 2 }]));
+      const result = geographyToGeoJSON(geo('point', [{ latitude: 1, longitude: 2 }]));
       expect(result).toEqual({ type: 'Point', coordinates: [2, 1] });
     });
   });
@@ -31,7 +21,6 @@ describe('geographyToGeoJSON', () => {
   describe('LINE / LINESTRING', () => {
     it('maps 2+ coords to LineString in [lng, lat] order', () => {
       const result = geographyToGeoJSON(
-        logger,
         geo('LINE', [
           { latitude: 32.7453754, longitude: 35.1867382 },
           { latitude: 32.7454701, longitude: 35.1854494 },
@@ -48,7 +37,6 @@ describe('geographyToGeoJSON', () => {
 
     it('accepts LINESTRING alias', () => {
       const result = geographyToGeoJSON(
-        logger,
         geo('LINESTRING', [
           { latitude: 1, longitude: 2 },
           { latitude: 3, longitude: 4 },
@@ -58,7 +46,7 @@ describe('geographyToGeoJSON', () => {
     });
 
     it('throws when fewer than 2 coords', () => {
-      expect(() => geographyToGeoJSON(logger, geo('LINE', [{ latitude: 1, longitude: 2 }]))).toThrow(/LineString requires >=2/);
+      expect(() => geographyToGeoJSON(geo('LINE', [{ latitude: 1, longitude: 2 }]))).toThrow(/LineString requires >=2/);
     });
   });
 
@@ -70,7 +58,7 @@ describe('geographyToGeoJSON', () => {
         { latitude: 1, longitude: 1 },
         { latitude: 0, longitude: 0 },
       ];
-      const result = geographyToGeoJSON(logger, geo('POLYGON', ring));
+      const result = geographyToGeoJSON(geo('POLYGON', ring));
       expect(result).toEqual({
         type: 'Polygon',
         coordinates: [
@@ -90,7 +78,7 @@ describe('geographyToGeoJSON', () => {
         { latitude: 1, longitude: 1 },
         { latitude: 0, longitude: 0 },
       ];
-      expect(() => geographyToGeoJSON(logger, geo('POLYGON', ring))).toThrow(/Polygon requires >=4/);
+      expect(() => geographyToGeoJSON(geo('POLYGON', ring))).toThrow(/Polygon requires >=4/);
     });
 
     it('accepts AREA alias as Polygon', () => {
@@ -100,7 +88,7 @@ describe('geographyToGeoJSON', () => {
         { latitude: 1, longitude: 1 },
         { latitude: 0, longitude: 0 },
       ];
-      const result = geographyToGeoJSON(logger, geo('AREA', ring));
+      const result = geographyToGeoJSON(geo('AREA', ring));
       expect(result).toEqual({
         type: 'Polygon',
         coordinates: [
@@ -117,15 +105,15 @@ describe('geographyToGeoJSON', () => {
 
   describe('error cases', () => {
     it('throws on empty coordinates', () => {
-      expect(() => geographyToGeoJSON(logger, geo('POINT', []))).toThrow(/Empty coordinates/);
+      expect(() => geographyToGeoJSON(geo('POINT', []))).toThrow(/Empty coordinates/);
     });
 
     it.each(['MULTIPOINT', 'MULTILINE', 'MULTILINESTRING', 'MULTIPOLYGON'])('throws unsupported for %s', (kind) => {
-      expect(() => geographyToGeoJSON(logger, geo(kind, [{ latitude: 1, longitude: 2 }]))).toThrow(/Unsupported graphicsObjectKind/);
+      expect(() => geographyToGeoJSON(geo(kind, [{ latitude: 1, longitude: 2 }]))).toThrow(/Unsupported graphicsObjectKind/);
     });
 
     it('throws on unknown kind', () => {
-      expect(() => geographyToGeoJSON(logger, geo('TRIANGLE', [{ latitude: 1, longitude: 2 }]))).toThrow(/Unknown graphicsObjectKind=TRIANGLE/);
+      expect(() => geographyToGeoJSON(geo('TRIANGLE', [{ latitude: 1, longitude: 2 }]))).toThrow(/Unknown graphicsObjectKind=TRIANGLE/);
     });
   });
 });

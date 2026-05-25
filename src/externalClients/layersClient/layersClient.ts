@@ -40,9 +40,16 @@ interface GraphQLResponse {
 const tracer = trace.getTracer(SERVICE_NAME);
 
 function toLayerObject(logger: Logger, raw: RawLayerObject): LayerObject {
+  let geom;
+  try {
+    geom = geographyToGeoJSON(raw.geography);
+  } catch (err) {
+    logger.error({ msg: 'geographyToGeoJSON failed', geography: raw.geography, err });
+    throw err;
+  }
   return {
     id: raw.id,
-    geom: geographyToGeoJSON(logger, raw.geography),
+    geom,
     properties: {
       createdBy: raw.createdBy,
       creationTime: raw.creationTime,
