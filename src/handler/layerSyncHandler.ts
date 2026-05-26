@@ -19,7 +19,7 @@ export async function fetchAndSyncLayerPage(logger: Logger, entry: ScheduleEntry
       try {
         logger.info(`Fetching page for layer "${entry.layerName}" - status: ${state.status}, lastSequence: ${state.lastSequence}`);
 
-        const response = await layerClient.fetchPage(entry.layerName, state.lastSequence);
+        const response = await layerClient.fetchPage(logger, entry.layerName, state.lastSequence);
 
         logger.info(`Received ${response.fetchedCount} objects, ${response.deletedCount} deleted for layer "${entry.layerName}"`);
 

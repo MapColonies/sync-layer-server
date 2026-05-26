@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { trace } from '@opentelemetry/api';
 import { asyncCallWithSpan } from '@map-colonies/tracing-utils';
+import type { Logger } from '@map-colonies/js-logger';
 import type { LayerObject, ThirdPartyResponse } from '../../types';
 import { getSyncConfig } from '../../common/syncConfig';
 import { SERVICE_NAME } from '../../common/constants';
@@ -38,10 +39,17 @@ interface GraphQLResponse {
 
 const tracer = trace.getTracer(SERVICE_NAME);
 
-function toLayerObject(raw: RawLayerObject): LayerObject {
+function toLayerObject(logger: Logger, raw: RawLayerObject): LayerObject {
+  let geom;
+  try {
+    geom = geographyToGeoJSON(raw.geography);
+  } catch (err) {
+    logger.error({ msg: 'geographyToGeoJSON failed', geography: raw.geography, err });
+    throw err;
+  }
   return {
     id: raw.id,
-    geom: geographyToGeoJSON(raw.geography),
+    geom,
     properties: {
       createdBy: raw.createdBy,
       creationTime: raw.creationTime,
@@ -56,7 +64,7 @@ function toLayerObject(raw: RawLayerObject): LayerObject {
   };
 }
 
-export async function fetchPage(layerName: string, sequence: string): Promise<ThirdPartyResponse> {
+export async function fetchPage(logger: Logger, layerName: string, sequence: string): Promise<ThirdPartyResponse> {
   const config = getSyncConfig();
 
   return asyncCallWithSpan(
@@ -84,7 +92,7 @@ export async function fetchPage(layerName: string, sequence: string): Promise<Th
       }
 
       const rawObjects = json.data[layerName] ?? [];
-      const objects = rawObjects.filter((o) => !o.deleted).map(toLayerObject);
+      const objects = rawObjects.filter((o) => !o.deleted).map((raw) => toLayerObject(logger, raw));
       const { sequence: nextSequence, deletedEntitiesCount, fetchedEntitiesCount, deletedEntitiesIds } = json.extensions;
 
       return {
