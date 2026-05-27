@@ -1,6 +1,7 @@
 import { trace } from '@opentelemetry/api';
 import { asyncCallWithSpan } from '@map-colonies/tracing-utils';
 import type { ObjectLiteral, Repository } from 'typeorm';
+import type { Logger } from '@map-colonies/js-logger';
 import type { LayerObject } from '../entities';
 import { LayerObjectEntity } from '../entities';
 import { getDataSource } from '../connection';
@@ -12,7 +13,17 @@ function getRepository(): Repository<LayerObjectEntity> {
   return getDataSource().getRepository(LayerObjectEntity);
 }
 
-export async function insertObjects(layerName: string, objects: LayerObject[]): Promise<void> {
+async function insertRow(layerName: string, object: LayerObject): Promise<void> {
+  await getRepository()
+    .createQueryBuilder()
+    .insert()
+    .into(LayerObjectEntity)
+    .values({ layerName, id: object.id, geom: object.geom, properties: object.properties } as unknown as ObjectLiteral)
+    .orIgnore()
+    .execute();
+}
+
+export async function insertObjects(logger: Logger, layerName: string, objects: LayerObject[]): Promise<void> {
   if (objects.length === 0) return;
 
   const rows = objects.map((o) => ({
@@ -24,13 +35,31 @@ export async function insertObjects(layerName: string, objects: LayerObject[]): 
 
   await asyncCallWithSpan(
     async () => {
-      await getRepository()
-        .createQueryBuilder()
-        .insert()
-        .into(LayerObjectEntity)
-        .values(rows as unknown as ObjectLiteral[])
-        .orIgnore()
-        .execute();
+      try {
+        await getRepository()
+          .createQueryBuilder()
+          .insert()
+          .into(LayerObjectEntity)
+          .values(rows as unknown as ObjectLiteral[])
+          .orIgnore()
+          .execute();
+      } catch (batchErr) {
+        logger.warn({ msg: 'Batch insert failed, falling back to per-object inserts', layerName, count: objects.length, err: batchErr });
+        for (const object of objects) {
+          try {
+            await insertRow(layerName, object);
+          } catch (err) {
+            logger.error({
+              msg: 'Insert failed for object, skipping',
+              layerName,
+              id: object.id,
+              geom: object.geom,
+              properties: object.properties,
+              err,
+            });
+          }
+        }
+      }
     },
     tracer,
     'layerDataRepository.insertObjects'
