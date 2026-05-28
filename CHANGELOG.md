@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/MapColonies/sync-layer-server/compare/v1.1.0...v1.1.1) (2026-05-28)
+
+
+### Bug Fixes
+
+* Feature/mapco 10524 2 ([#36](https://github.com/MapColonies/sync-layer-server/issues/36)) ([db99ee1](https://github.com/MapColonies/sync-layer-server/commit/db99ee109cce1a210c993e2724631ac011dd8ec4))
+
 ## [1.1.0](https://github.com/MapColonies/sync-layer-server/compare/v1.0.1...v1.1.0) (2026-05-26)
 
 

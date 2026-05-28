@@ -1,6 +1,6 @@
 {
   "name": "sync-layer-server",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Service that continuously synchronizes geospatial layer data from a third-party GraphQL API into a remote PostgreSQL database",
   "main": "./src/index.ts",
   "scripts": {
