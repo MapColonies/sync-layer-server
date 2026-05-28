@@ -25,7 +25,7 @@ export async function fetchAndSyncLayerPage(logger: Logger, entry: ScheduleEntry
 
         if (response.objects.length > 0) {
           logger.info(`Inserting ${response.objects.length} new objects into layer "${entry.layerName}"`);
-          await layerDataRepository.insertObjects(entry.layerName, response.objects);
+          await layerDataRepository.insertObjects(logger, entry.layerName, response.objects);
         }
 
         if (response.deletedIds.length > 0) {

@@ -99,7 +99,7 @@ describe('layerSyncHandler', () => {
       await fetchAndSyncLayerPage(makeLogger(), entry);
 
       expect(layerClient.fetchPage).toHaveBeenCalledWith(expect.anything(), 'obstacles', '5');
-      expect(layerDataRepository.insertObjects).toHaveBeenCalledWith('obstacles', objects);
+      expect(layerDataRepository.insertObjects).toHaveBeenCalledWith(expect.anything(), 'obstacles', objects);
       expect(layerDataRepository.deleteDeprecatedObjects).toHaveBeenCalledWith('obstacles', ['old-1']);
       expect(syncStateRepository.updateSequence).toHaveBeenCalledWith('obstacles', '10');
     });
