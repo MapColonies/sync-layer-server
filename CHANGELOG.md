@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/MapColonies/sync-layer-server/compare/v1.1.1...v1.1.2) (2026-05-31)
+
+
+### Bug Fixes
+
+* **sync:** skip and log objects with invalid geometry instead of fail ([#38](https://github.com/MapColonies/sync-layer-server/issues/38)) ([e2a13f5](https://github.com/MapColonies/sync-layer-server/commit/e2a13f52fabf4b538cc39411214140e4091c900c))
+
 ## [1.1.1](https://github.com/MapColonies/sync-layer-server/compare/v1.1.0...v1.1.1) (2026-05-28)
 
 
