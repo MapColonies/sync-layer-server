@@ -39,17 +39,10 @@ interface GraphQLResponse {
 
 const tracer = trace.getTracer(SERVICE_NAME);
 
-function toLayerObject(logger: Logger, raw: RawLayerObject): LayerObject {
-  let geom;
-  try {
-    geom = geographyToGeoJSON(raw.geography);
-  } catch (err) {
-    logger.error({ msg: 'geographyToGeoJSON failed', geography: raw.geography, err });
-    throw err;
-  }
+function toLayerObject(raw: RawLayerObject): LayerObject {
   return {
     id: raw.id,
-    geom,
+    geom: geographyToGeoJSON(raw.geography),
     properties: {
       createdBy: raw.createdBy,
       creationTime: raw.creationTime,
@@ -92,7 +85,14 @@ export async function fetchPage(logger: Logger, layerName: string, sequence: str
       }
 
       const rawObjects = json.data[layerName] ?? [];
-      const objects = rawObjects.filter((o) => !o.deleted).map((raw) => toLayerObject(logger, raw));
+      const objects: LayerObject[] = [];
+      for (const raw of rawObjects.filter((o) => !o.deleted)) {
+        try {
+          objects.push(toLayerObject(raw));
+        } catch (err) {
+          logger.error({ msg: 'Failed to parse object, skipping', layerName, id: raw.id, geography: raw.geography, err });
+        }
+      }
       const { sequence: nextSequence, deletedEntitiesCount, fetchedEntitiesCount, deletedEntitiesIds } = json.extensions;
 
       return {

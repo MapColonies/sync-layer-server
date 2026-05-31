@@ -30,7 +30,7 @@ export async function fetchAndSyncLayerPage(logger: Logger, entry: ScheduleEntry
 
         if (response.deletedIds.length > 0) {
           logger.info(`Deleting ${response.deletedIds.length} deprecated objects from layer "${entry.layerName}"`);
-          await layerDataRepository.deleteDeprecatedObjects(entry.layerName, response.deletedIds);
+          await layerDataRepository.deleteDeprecatedObjects(logger, entry.layerName, response.deletedIds);
         }
 
         await syncStateRepository.updateSequence(entry.layerName, response.nextSequence);

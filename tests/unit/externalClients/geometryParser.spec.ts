@@ -81,6 +81,16 @@ describe('geographyToGeoJSON', () => {
       expect(() => geographyToGeoJSON(geo('POLYGON', ring))).toThrow(/Polygon requires >=4/);
     });
 
+    it('throws when ring is not closed (first and last coords differ)', () => {
+      const ring = [
+        { latitude: 0, longitude: 0 },
+        { latitude: 0, longitude: 1 },
+        { latitude: 1, longitude: 1 },
+        { latitude: 1, longitude: 0 },
+      ];
+      expect(() => geographyToGeoJSON(geo('AREA', ring))).toThrow(/First and last/i);
+    });
+
     it('accepts AREA alias as Polygon', () => {
       const ring = [
         { latitude: 0, longitude: 0 },
