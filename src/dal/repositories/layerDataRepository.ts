@@ -66,17 +66,38 @@ export async function insertObjects(logger: Logger, layerName: string, objects: 
   );
 }
 
-export async function deleteDeprecatedObjects(layerName: string, deletedIds: string[]): Promise<void> {
+export async function deleteDeprecatedObjects(logger: Logger, layerName: string, deletedIds: string[]): Promise<void> {
   if (deletedIds.length === 0) return;
 
   await asyncCallWithSpan(
     async () => {
-      await getRepository()
-        .createQueryBuilder()
-        .delete()
-        .from(LayerObjectEntity)
-        .where('layer_name = :layerName AND id IN (:...ids)', { layerName, ids: deletedIds })
-        .execute();
+      try {
+        await getRepository()
+          .createQueryBuilder()
+          .delete()
+          .from(LayerObjectEntity)
+          .where('layer_name = :layerName AND id IN (:...ids)', { layerName, ids: deletedIds })
+          .execute();
+      } catch (batchErr) {
+        logger.warn({ msg: 'Batch delete failed, falling back to per-object deletes', layerName, count: deletedIds.length, err: batchErr });
+        for (const id of deletedIds) {
+          try {
+            await getRepository()
+              .createQueryBuilder()
+              .delete()
+              .from(LayerObjectEntity)
+              .where('layer_name = :layerName AND id = :id', { layerName, id })
+              .execute();
+          } catch (err) {
+            logger.error({
+              msg: 'Delete failed for object, skipping',
+              layerName,
+              id,
+              err,
+            });
+          }
+        }
+      }
     },
     tracer,
     'layerDataRepository.deleteDeprecatedObjects'
