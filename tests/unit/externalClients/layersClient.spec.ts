@@ -12,7 +12,7 @@ import { fetchPage } from '@src/externalClients/layersClient/layersClient';
 import { getSyncConfig } from '@src/common/syncConfig';
 
 const syncConfig: SyncConfig = {
-  layers: ['obstacles'],
+  layerQueries: { obstacles: 'query { obstacles { id } }' },
   syncIntervalMs: 500,
   pollIntervalMs: 600_000,
   pageSize: 100,

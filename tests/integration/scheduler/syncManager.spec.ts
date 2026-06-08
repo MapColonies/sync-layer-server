@@ -20,7 +20,7 @@ import * as layerSyncHandler from '@src/handler/layerSyncHandler';
 const TEST_LAYERS = ['layer_alpha', 'layer_beta'];
 
 const syncConfig: SyncConfig = {
-  layers: TEST_LAYERS,
+  layerQueries: Object.fromEntries(TEST_LAYERS.map((layer) => [layer, `query { ${layer} { id } }`])),
   syncIntervalMs: 10,
   pollIntervalMs: 1_000_000,
   pageSize: 100,

@@ -28,7 +28,9 @@
     }
   },
   "sync": {
-    "layers": ["obstacles"],
+    "layerQueries": {
+      "obstacles": "query { obstacles { createdBy creationTime deleted entityVersion geography { coordinates { latitude longitude } graphicsObjectKind { value } height obstacleHeightsRange { displayName } } id identifiers { essence { displayName value } name number } lastUpdateTime lastUpdatedBy } }"
+    },
     "syncIntervalMs": 500,
     "pollIntervalMs": 600000,
     "pageSize": 1000,

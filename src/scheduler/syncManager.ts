@@ -23,9 +23,10 @@ export class SyncManager {
   public async start(): Promise<void> {
     const config = getSyncConfig();
 
-    this.logger.info(`Initializing sync for layers: ${config.layers.join(', ')}`);
+    const layers = Object.keys(config.layerQueries);
+    this.logger.info(`Initializing sync for layers: ${layers.join(', ')}`);
 
-    await this.initialize(config.layers);
+    await this.initialize(layers);
 
     this.running = true;
     this.loopPromise = this.runSchedulerLoop();
