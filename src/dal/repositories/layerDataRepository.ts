@@ -19,7 +19,7 @@ async function insertRow(layerName: string, object: LayerObject): Promise<void> 
     .insert()
     .into(LayerObjectEntity)
     .values({ layerName, id: object.id, geom: object.geom, properties: object.properties } as unknown as ObjectLiteral)
-    .orIgnore()
+    .orUpdate(['geom', 'properties'], ['layer_name', 'id'])
     .execute();
 }
 
@@ -41,7 +41,7 @@ export async function insertObjects(logger: Logger, layerName: string, objects: 
           .insert()
           .into(LayerObjectEntity)
           .values(rows as unknown as ObjectLiteral[])
-          .orIgnore()
+          .orUpdate(['geom', 'properties'], ['layer_name', 'id'])
           .execute();
       } catch (batchErr) {
         logger.warn({ msg: 'Batch insert failed, falling back to per-object inserts', layerName, count: objects.length, err: batchErr });
