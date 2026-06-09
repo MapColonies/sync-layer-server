@@ -14,5 +14,4 @@ const buildConnectionOptions = (): DataSourceOptions => {
   };
 };
 
-/* eslint-disable @typescript-eslint/naming-convention */
 export default initConfig(true).then(() => new DataSource(buildConnectionOptions()));

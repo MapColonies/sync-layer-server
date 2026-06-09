@@ -1,5 +1,5 @@
 /* istanbul ignore file */
-import { readFileSync } from 'fs';
+import { readFileSync } from 'node:fs';
 import type { DataSourceOptions } from 'typeorm';
 import type { DbConfig } from '../types';
 import { LayerObjectEntity } from './entities/layerObject';
