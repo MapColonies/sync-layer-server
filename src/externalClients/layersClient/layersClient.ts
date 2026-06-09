@@ -33,7 +33,7 @@ interface GraphQLResponse {
     sequence: string;
     deletedEntitiesCount: number;
     fetchedEntitiesCount: number;
-    deletedEntitiesIds: string[];
+    deletedEntitiesIDs?: string[];
   };
 }
 
@@ -73,8 +73,9 @@ export async function fetchPage(logger: Logger, layerName: string, sequence: str
             'requesting-sys-name': config.requestingSystemName,
             sequence,
             'page-size': String(config.pageSize),
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             Authorization: config.authToken,
-            'use-Delete-Entities': String(config.useDeleteEntities),
+            'use-Deleted-Entities': String(config.useDeleteEntities),
           },
         }
       );
@@ -93,13 +94,13 @@ export async function fetchPage(logger: Logger, layerName: string, sequence: str
           logger.error({ msg: 'Failed to parse object, skipping', layerName, id: raw.id, geography: raw.geography, err });
         }
       }
-      const { sequence: nextSequence, deletedEntitiesCount, fetchedEntitiesCount, deletedEntitiesIds } = json.extensions;
+      const { sequence: nextSequence, deletedEntitiesCount, fetchedEntitiesCount, deletedEntitiesIDs } = json.extensions;
 
       return {
         nextSequence,
         fetchedCount: fetchedEntitiesCount,
         deletedCount: deletedEntitiesCount,
-        deletedIds: deletedEntitiesIds ?? [],
+        deletedIds: deletedEntitiesIDs ?? [],
         objects,
       };
     },

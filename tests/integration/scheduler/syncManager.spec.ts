@@ -1,11 +1,6 @@
 import type { Logger } from '@map-colonies/js-logger';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ScheduleEntry, SyncConfig } from '@src/types';
-vi.mock('@src/common/syncConfig', () => ({ getSyncConfig: vi.fn() }));
-vi.mock('@src/common/dbConfig', () => ({ getDbConfig: vi.fn() }));
-vi.mock('@src/handler/layerSyncHandler', () => ({
-  fetchAndSyncLayerPage: vi.fn(),
-}));
 
 import { SyncManager } from '@src/scheduler/syncManager';
 import { getTestDbConfigFromEnv } from '@tests/configurations/dbFromProcessEnv';
@@ -16,6 +11,12 @@ import { getAllSyncStates } from '@src/dal/repositories/syncStateRepository';
 import { SyncStateEntry } from '@src/dal/entities/syncState';
 import { SyncStatus } from '@src/types';
 import * as layerSyncHandler from '@src/handler/layerSyncHandler';
+
+vi.mock('@src/common/syncConfig', () => ({ getSyncConfig: vi.fn() }));
+vi.mock('@src/common/dbConfig', () => ({ getDbConfig: vi.fn() }));
+vi.mock('@src/handler/layerSyncHandler', () => ({
+  fetchAndSyncLayerPage: vi.fn(),
+}));
 
 const TEST_LAYERS = ['layer_alpha', 'layer_beta'];
 
@@ -75,7 +76,8 @@ describe('integration: SyncManager', () => {
 
     await vi.waitFor(
       () => {
-        const processed = vi.mocked(layerSyncHandler.fetchAndSyncLayerPage).mock.calls.map((c) => (c[1] as ScheduleEntry).layerName);
+        const processed = vi.mocked(layerSyncHandler.fetchAndSyncLayerPage).mock.calls.map((c) => c[1].layerName);
+
         expect(processed).toContain('layer_alpha');
         expect(processed).toContain('layer_beta');
       },
@@ -124,6 +126,7 @@ describe('integration: SyncManager', () => {
     await vi.waitFor(
       async () => {
         const rows = await getAllSyncStates();
+
         expect(rows).toHaveLength(2);
       },
       { timeout: 2000, interval: 20 }
@@ -135,6 +138,7 @@ describe('integration: SyncManager', () => {
     await second.stop();
 
     const stored = await getAllSyncStates();
+
     expect(stored).toHaveLength(2);
   });
 });

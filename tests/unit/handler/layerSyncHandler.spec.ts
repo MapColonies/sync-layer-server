@@ -3,6 +3,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ScheduleEntry, SyncConfig, SyncStateEntry, ThirdPartyResponse } from '@src/types';
 import { SyncStatus } from '@src/types';
 
+import { fetchAndSyncLayerPage } from '@src/handler/layerSyncHandler';
+import { getSyncConfig } from '@src/common/syncConfig';
+import * as syncStateRepository from '@src/dal/repositories/syncStateRepository';
+import * as layerDataRepository from '@src/dal/repositories/layerDataRepository';
+import * as layerClient from '@src/externalClients/layersClient/layersClient';
+
 vi.mock('@src/common/syncConfig', () => ({
   getSyncConfig: vi.fn(),
 }));
@@ -21,12 +27,6 @@ vi.mock('@src/dal/repositories/layerDataRepository', () => ({
 vi.mock('@src/externalClients/layersClient/layersClient', () => ({
   fetchPage: vi.fn(),
 }));
-
-import { fetchAndSyncLayerPage } from '@src/handler/layerSyncHandler';
-import { getSyncConfig } from '@src/common/syncConfig';
-import * as syncStateRepository from '@src/dal/repositories/syncStateRepository';
-import * as layerDataRepository from '@src/dal/repositories/layerDataRepository';
-import * as layerClient from '@src/externalClients/layersClient/layersClient';
 
 const syncConfig: SyncConfig = {
   layers: [{ name: 'obstacles', query: 'query { obstacles { id } }' }],

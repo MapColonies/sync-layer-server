@@ -6,7 +6,7 @@ import type { Logger } from '@map-colonies/js-logger';
 import { SERVICES } from '@common/constants';
 import type { ConfigType } from '@common/config';
 import { getApp } from './app';
-import { SyncManager } from './scheduler/syncManager';
+import type { SyncManager } from './scheduler/syncManager';
 import type { HealthCheck } from './dal/connectionManager';
 
 void getApp()

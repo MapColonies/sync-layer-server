@@ -3,13 +3,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import axios from 'axios';
 import type { SyncConfig } from '@src/types';
 
+import { fetchPage } from '@src/externalClients/layersClient/layersClient';
+import { getSyncConfig } from '@src/common/syncConfig';
+
 vi.mock('axios');
 vi.mock('@src/common/syncConfig', () => ({
   getSyncConfig: vi.fn(),
 }));
-
-import { fetchPage } from '@src/externalClients/layersClient/layersClient';
-import { getSyncConfig } from '@src/common/syncConfig';
 
 const syncConfig: SyncConfig = {
   layers: [{ name: 'obstacles', query: 'query { obstacles { id } }' }],

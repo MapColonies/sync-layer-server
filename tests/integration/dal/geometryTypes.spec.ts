@@ -126,9 +126,7 @@ describe('integration: layer_objects accepts every PostGIS geometry subtype', ()
   it.each(cases)('inserts and reads back a $name', async ({ name, expectedType, geom }) => {
     await repo.insert({ layerName: TEST_LAYER, id: name, geom, properties: { name } });
 
-    const rows = (await ds.query(`SELECT GeometryType(geom) AS gt FROM layer_objects WHERE layer_name = $1 AND id = $2`, [TEST_LAYER, name])) as {
-      gt: string;
-    }[];
+    const rows = await ds.query(`SELECT GeometryType(geom) AS gt FROM layer_objects WHERE layer_name = $1 AND id = $2`, [TEST_LAYER, name]);
 
     expect(rows).toHaveLength(1);
     expect(rows[0]?.gt).toBe(expectedType);
@@ -137,9 +135,7 @@ describe('integration: layer_objects accepts every PostGIS geometry subtype', ()
   it('keeps all 6 subtypes in the same partition simultaneously', async () => {
     await repo.insert(cases.map((c) => ({ layerName: TEST_LAYER, id: c.name, geom: c.geom, properties: {} })));
 
-    const rows = (await ds.query(`SELECT GeometryType(geom) AS gt FROM layer_objects WHERE layer_name = $1 ORDER BY id`, [TEST_LAYER])) as {
-      gt: string;
-    }[];
+    const rows = await ds.query(`SELECT GeometryType(geom) AS gt FROM layer_objects WHERE layer_name = $1 ORDER BY id`, [TEST_LAYER]);
 
     expect(rows.map((r) => r.gt).sort()).toEqual(cases.map((c) => c.expectedType).sort());
   });
