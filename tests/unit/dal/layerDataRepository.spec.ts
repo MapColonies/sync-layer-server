@@ -1,7 +1,7 @@
 import type { Logger } from '@map-colonies/js-logger';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { deleteDeprecatedObjects } from '@src/dal/repositories/layerDataRepository';
+import { deleteDeprecatedObjects, insertObjects } from '@src/dal/repositories/layerDataRepository';
 
 const mockExecute = vi.fn();
 const mockWhere = vi.fn().mockReturnValue({ execute: mockExecute });
