@@ -6,6 +6,13 @@ const mockWhere = vi.fn().mockReturnValue({ execute: mockExecute });
 const mockFrom = vi.fn().mockReturnValue({ where: mockWhere });
 const mockDelete = vi.fn().mockReturnValue({ from: mockFrom });
 const mockCreateQueryBuilder = vi.fn().mockReturnValue({ delete: mockDelete });
+// insert chain: createQueryBuilder().insert().into().values().orUpdate().execute()
+const mockInsertExecute = vi.fn();
+const mockOrUpdate = vi.fn().mockReturnValue({ execute: mockInsertExecute });
+const mockValues = vi.fn().mockReturnValue({ orUpdate: mockOrUpdate });
+const mockInto = vi.fn().mockReturnValue({ values: mockValues });
+const mockInsert = vi.fn().mockReturnValue({ into: mockInto });
+
 const mockGetRepository = vi.fn().mockReturnValue({ createQueryBuilder: mockCreateQueryBuilder });
 
 vi.mock('@src/dal/connection', () => ({
@@ -20,7 +27,8 @@ vi.mock('@map-colonies/tracing-utils', () => ({
   asyncCallWithSpan: async (fn: () => Promise<void>) => fn(),
 }));
 
-import { deleteDeprecatedObjects } from '@src/dal/repositories/layerDataRepository';
+import { deleteDeprecatedObjects, insertObjects } from '@src/dal/repositories/layerDataRepository';
+import type { LayerObject } from '@src/dal/entities';
 
 function makeLogger(): Logger {
   return {
@@ -93,5 +101,68 @@ describe('deleteDeprecatedObjects', () => {
     await deleteDeprecatedObjects(logger, 'obstacles', []);
 
     expect(mockExecute).not.toHaveBeenCalled();
+  });
+});
+
+function makeObject(id: string): LayerObject {
+  return { id, geom: { type: 'Point', coordinates: [0, 0] }, properties: { foo: id } };
+}
+
+describe('insertObjects', () => {
+  let logger: Logger;
+
+  beforeEach(() => {
+    logger = makeLogger();
+    vi.clearAllMocks();
+    mockCreateQueryBuilder.mockReturnValue({ insert: mockInsert });
+    mockInsert.mockReturnValue({ into: mockInto });
+    mockInto.mockReturnValue({ values: mockValues });
+    mockValues.mockReturnValue({ orUpdate: mockOrUpdate });
+    mockOrUpdate.mockReturnValue({ execute: mockInsertExecute });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('upserts on the (layer_name, id) conflict, overwriting geom and properties', async () => {
+    mockInsertExecute.mockResolvedValueOnce(undefined);
+
+    await insertObjects(logger, 'obstacles', [makeObject('a'), makeObject('b')]);
+
+    expect(mockInsertExecute).toHaveBeenCalledTimes(1);
+    expect(mockOrUpdate).toHaveBeenCalledWith(['geom', 'properties'], ['layer_name', 'id']);
+  });
+
+  it('does nothing when objects is empty', async () => {
+    await insertObjects(logger, 'obstacles', []);
+
+    expect(mockInsertExecute).not.toHaveBeenCalled();
+  });
+
+  it('falls back to per-object upserts when the batch insert throws', async () => {
+    mockInsertExecute.mockRejectedValueOnce(new Error('batch error')).mockResolvedValueOnce(undefined).mockResolvedValueOnce(undefined);
+
+    await insertObjects(logger, 'obstacles', [makeObject('a'), makeObject('b')]);
+
+    // batch attempt + 2 per-object attempts
+    expect(mockInsertExecute).toHaveBeenCalledTimes(3);
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ msg: 'Batch insert failed, falling back to per-object inserts', layerName: 'obstacles', count: 2 })
+    );
+  });
+
+  it('logs and continues when an individual upsert also fails', async () => {
+    mockInsertExecute
+      .mockRejectedValueOnce(new Error('batch error'))
+      .mockRejectedValueOnce(new Error('individual error'))
+      .mockResolvedValueOnce(undefined);
+
+    await insertObjects(logger, 'obstacles', [makeObject('a'), makeObject('b')]);
+
+    expect(mockInsertExecute).toHaveBeenCalledTimes(3);
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.objectContaining({ msg: 'Insert failed for object, skipping', layerName: 'obstacles', id: 'a' })
+    );
   });
 });
