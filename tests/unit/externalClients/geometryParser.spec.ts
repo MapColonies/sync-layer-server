@@ -9,11 +9,13 @@ describe('geographyToGeoJSON', () => {
   describe('POINT', () => {
     it('maps single coordinate to Point with [lng, lat] order', () => {
       const result = geographyToGeoJSON(geo('POINT', [{ latitude: 32.0853, longitude: 34.7818 }]));
+
       expect(result).toEqual({ type: 'Point', coordinates: [34.7818, 32.0853] });
     });
 
     it('accepts lowercase kind', () => {
       const result = geographyToGeoJSON(geo('point', [{ latitude: 1, longitude: 2 }]));
+
       expect(result).toEqual({ type: 'Point', coordinates: [2, 1] });
     });
   });
@@ -26,6 +28,7 @@ describe('geographyToGeoJSON', () => {
           { latitude: 32.7454701, longitude: 35.1854494 },
         ])
       );
+
       expect(result).toEqual({
         type: 'LineString',
         coordinates: [
@@ -42,6 +45,7 @@ describe('geographyToGeoJSON', () => {
           { latitude: 3, longitude: 4 },
         ])
       );
+
       expect(result.type).toBe('LineString');
     });
 
@@ -59,6 +63,7 @@ describe('geographyToGeoJSON', () => {
         { latitude: 0, longitude: 0 },
       ];
       const result = geographyToGeoJSON(geo('POLYGON', ring));
+
       expect(result).toEqual({
         type: 'Polygon',
         coordinates: [
@@ -78,6 +83,7 @@ describe('geographyToGeoJSON', () => {
         { latitude: 1, longitude: 1 },
         { latitude: 0, longitude: 0 },
       ];
+
       expect(() => geographyToGeoJSON(geo('POLYGON', ring))).toThrow(/Polygon requires >=4/);
     });
 
@@ -88,6 +94,7 @@ describe('geographyToGeoJSON', () => {
         { latitude: 1, longitude: 1 },
         { latitude: 1, longitude: 0 },
       ];
+
       expect(() => geographyToGeoJSON(geo('AREA', ring))).toThrow(/First and last/i);
     });
 
@@ -99,6 +106,7 @@ describe('geographyToGeoJSON', () => {
         { latitude: 0, longitude: 0 },
       ];
       const result = geographyToGeoJSON(geo('AREA', ring));
+
       expect(result).toEqual({
         type: 'Polygon',
         coordinates: [

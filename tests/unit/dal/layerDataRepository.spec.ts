@@ -1,6 +1,8 @@
 import type { Logger } from '@map-colonies/js-logger';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { deleteDeprecatedObjects } from '@src/dal/repositories/layerDataRepository';
+
 const mockExecute = vi.fn();
 const mockWhere = vi.fn().mockReturnValue({ execute: mockExecute });
 const mockFrom = vi.fn().mockReturnValue({ where: mockWhere });
@@ -19,8 +21,6 @@ vi.mock('@opentelemetry/api', () => ({
 vi.mock('@map-colonies/tracing-utils', () => ({
   asyncCallWithSpan: async (fn: () => Promise<void>) => fn(),
 }));
-
-import { deleteDeprecatedObjects } from '@src/dal/repositories/layerDataRepository';
 
 function makeLogger(): Logger {
   return {

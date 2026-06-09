@@ -27,21 +27,21 @@ export function geographyToGeoJSON(geography: RawGeography): Geometry {
 
   switch (kind) {
     case 'POINT':
-      return point(toPosition(coords[0]!)).geometry as Point;
+      return point(toPosition(coords[0]!)).geometry;
 
     case 'LINE':
     case 'LINESTRING':
       if (coords.length < 2) {
         throw new Error(`LineString requires >=2 coordinates, got ${coords.length}`);
       }
-      return lineString(coords.map(toPosition)).geometry as LineString;
+      return lineString(coords.map(toPosition)).geometry;
 
     case 'POLYGON':
     case 'AREA':
       if (coords.length < 4) {
         throw new Error(`Polygon requires >=4 coordinates (closed ring), got ${coords.length}`);
       }
-      return polygon([coords.map(toPosition)]).geometry as Polygon;
+      return polygon([coords.map(toPosition)]).geometry;
 
     default:
       if (MULTI_KINDS.has(kind)) {
