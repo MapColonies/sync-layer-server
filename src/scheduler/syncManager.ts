@@ -23,7 +23,7 @@ export class SyncManager {
   public async start(): Promise<void> {
     const config = getSyncConfig();
 
-    const layers = Object.keys(config.layerQueries);
+    const layers = config.layers.map((l) => l.name);
     this.logger.info(`Initializing sync for layers: ${layers.join(', ')}`);
 
     await this.initialize(layers);

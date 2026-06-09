@@ -29,7 +29,7 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
   configInstance.initializeMetrics(metricsRegistry);
 
   const syncConfig = getSyncConfig();
-  const layers = Object.keys(syncConfig.layerQueries);
+  const layers = syncConfig.layers.map((l) => l.name);
   const dataSource = await initializeDb(layers);
   const { host, port, database } = dataSource.options as { host: string; port: number; database: string };
   logger.info(`Database connected to ${host}:${port}/${database} (layer partitions: ${layers.join(', ')})`);

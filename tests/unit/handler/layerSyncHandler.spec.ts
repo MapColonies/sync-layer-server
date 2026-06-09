@@ -29,7 +29,7 @@ import * as layerDataRepository from '@src/dal/repositories/layerDataRepository'
 import * as layerClient from '@src/externalClients/layersClient/layersClient';
 
 const syncConfig: SyncConfig = {
-  layerQueries: { obstacles: 'query { obstacles { id } }' },
+  layers: [{ name: 'obstacles', query: 'query { obstacles { id } }' }],
   syncIntervalMs: 500,
   pollIntervalMs: 600_000,
   pageSize: 100,

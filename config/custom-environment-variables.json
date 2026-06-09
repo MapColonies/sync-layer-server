@@ -40,8 +40,8 @@
     }
   },
   "sync": {
-    "layerQueries": {
-      "__name": "LAYER_QUERIES",
+    "layers": {
+      "__name": "LAYERS",
       "__format": "json"
     },
     "syncIntervalMs": {

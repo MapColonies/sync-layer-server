@@ -44,7 +44,6 @@ function toLayerObject(raw: RawLayerObject): LayerObject {
     id: raw.id,
     geom: geographyToGeoJSON(raw.geography),
     properties: {
-      geography: raw.geography,
       createdBy: raw.createdBy,
       creationTime: raw.creationTime,
       entityVersion: raw.entityVersion,
@@ -65,7 +64,7 @@ export async function fetchPage(logger: Logger, layerName: string, sequence: str
     async () => {
       const response = await axios.post<GraphQLResponse>(
         config.thirdPartyBaseUrl,
-        { query: buildLayerQuery(layerName, config.layerQueries) },
+        { query: buildLayerQuery(layerName, config.layers) },
         {
           headers: {
             'Content-Type': 'application/json',
