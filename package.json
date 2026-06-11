@@ -66,7 +66,7 @@
     "@types/express": "^4.17.21",
     "@types/geojson": "^7946.0.16",
     "@types/multer": "^1.4.12",
-    "@types/supertest": "^6.0.2",
+    "@types/supertest": "^7.2.0",
     "@vitest/coverage-v8": "^4.0.18",
     "@vitest/eslint-plugin": "^1.6.9",
     "@vitest/ui": "^4.0.18",
