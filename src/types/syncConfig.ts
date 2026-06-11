@@ -1,5 +1,8 @@
+import type { LayerConfig } from './layerConfig';
+
 export interface SyncConfig {
-  layers: string[];
+  // Layers to sync; each entry pairs a layer name with its GraphQL query.
+  layers: LayerConfig[];
   syncIntervalMs: number;
   pollIntervalMs: number;
   pageSize: number;

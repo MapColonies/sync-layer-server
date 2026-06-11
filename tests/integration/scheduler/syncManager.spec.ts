@@ -21,7 +21,7 @@ vi.mock('@src/handler/layerSyncHandler', () => ({
 const TEST_LAYERS = ['layer_alpha', 'layer_beta'];
 
 const syncConfig: SyncConfig = {
-  layers: TEST_LAYERS,
+  layers: TEST_LAYERS.map((layer) => ({ name: layer, query: `query { ${layer} { id } }` })),
   syncIntervalMs: 10,
   pollIntervalMs: 1_000_000,
   pageSize: 100,

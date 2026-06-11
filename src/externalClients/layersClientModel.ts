@@ -1,36 +1,12 @@
-// Third-party API uses the layer name as the root query field.
-// Pagination/auth inputs are passed via HTTP headers, not GraphQL variables.
-export function buildLayerQuery(layerName: string): string {
-  return `query {
-  ${layerName} {
-    createdBy
-    creationTime
-    deleted
-    entityVersion
-    geography {
-      coordinates {
-        latitude
-        longitude
-      }
-      graphicsObjectKind {
-        value
-      }
-      height
-      obstacleHeightsRange {
-        displayName
-      }
-    }
-    id
-    identifiers {
-      essence {
-        displayName
-        value
-      }
-      name
-      number
-    }
-    lastUpdateTime
-    lastUpdatedBy
+import type { LayerConfig } from '../types';
+
+// The query per layer comes from config (sync.layers), matched by layer name.
+// The layer name is the root GraphQL query field. A layer with no configured
+// query is treated as a misconfiguration and skipped (error thrown).
+export function buildLayerQuery(layerName: string, layers: LayerConfig[]): string {
+  const layer = layers.find((l) => l.name === layerName);
+  if (layer === undefined || layer.query.trim() === '') {
+    throw new Error(`No query configured for layer "${layerName}"`);
   }
-}`;
+  return layer.query;
 }

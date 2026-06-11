@@ -12,7 +12,7 @@ vi.mock('@src/common/syncConfig', () => ({
 }));
 
 const syncConfig: SyncConfig = {
-  layers: ['obstacles'],
+  layers: [{ name: 'obstacles', query: 'query { obstacles { id } }' }],
   syncIntervalMs: 500,
   pollIntervalMs: 600_000,
   pageSize: 100,

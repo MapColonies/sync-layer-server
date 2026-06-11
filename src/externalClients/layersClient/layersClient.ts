@@ -64,7 +64,7 @@ export async function fetchPage(logger: Logger, layerName: string, sequence: str
     async () => {
       const response = await axios.post<GraphQLResponse>(
         config.thirdPartyBaseUrl,
-        { query: buildLayerQuery(layerName) },
+        { query: buildLayerQuery(layerName, config.layers) },
         {
           headers: {
             'Content-Type': 'application/json',
