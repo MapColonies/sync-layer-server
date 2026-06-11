@@ -163,5 +163,8 @@ describe('insertObjects', () => {
     expect(logger.error).toHaveBeenCalledWith(
       expect.objectContaining({ msg: 'Insert failed for object, skipping', layerName: 'obstacles', id: 'a' })
     );
+    expect(logger.error).toHaveBeenCalledTimes(1);
+
+    expect(mockValues).toHaveBeenLastCalledWith(expect.objectContaining({ layerName: 'obstacles', id: 'b' }));
   });
 });
