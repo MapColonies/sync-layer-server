@@ -44,6 +44,8 @@ data:
   DB_NAME: {{ $postgres.name | quote }}
   DB_CERT_PATH: /tmp/certs/{{ $postgres.ssl.certFileName }}
   DB_KEY_PATH: /tmp/certs/{{ $postgres.ssl.keyFileName }}
+  {{- if $postgres.ssl.caFileName }}
   DB_CA_PATH: /tmp/certs/{{ $postgres.ssl.caFileName }}
+  {{- end }}
   DB_ENABLE_SSL_AUTH: {{ $postgres.ssl.enabled | quote }}
 {{ end }}
