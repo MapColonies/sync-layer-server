@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/MapColonies/sync-layer-server/compare/v1.2.0...v1.2.1) (2026-10-22)
+
+
+### Bug Fixes
+
+* support optional postgres CA certificate (MAPCO-10935) ([#51](https://github.com/MapColonies/sync-layer-server/issues/51)) ([91bce68](https://github.com/MapColonies/sync-layer-server/commit/91bce68347b0299936f59bfd26645db66e746ea9))
+
 ## [1.2.0](https://github.com/MapColonies/sync-layer-server/compare/v1.1.2...v1.2.0) (2026-06-11)
 
 
