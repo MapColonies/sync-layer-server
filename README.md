@@ -133,12 +133,16 @@ docker run -it -e DB_USERNAME=VALUE  -e DB_PASSWORD=VALUE -e DB_NAME=VALUE -e DB
 For secure database connections using SSL certificates:
 
 **Environment Variables:**
-- `DB_ENABLE_SSL` - Set to `true` to enable SSL (default: `false`)
-- `DB_SSL_KEY_PATH` - Path to client private key file
-- `DB_SSL_CERT_PATH` - Path to client certificate file
-- `DB_SSL_CA_PATH` - Path to CA certificate file
+- `DB_ENABLE_SSL_AUTH` - Set to `true` to enable SSL (default: `false`)
+- `DB_KEY_PATH` - Path to client private key file
+- `DB_CERT_PATH` - Path to client certificate file
+- `DB_CA_PATH` - Path to CA certificate file (optional)
 
-**Example with SSL:**
+The CA certificate is optional. When `DB_CA_PATH` is set, the server certificate is verified against it (verification is enforced when `NODE_ENV=production`). When `DB_CA_PATH` is not set or empty, the connection is still encrypted, but the server certificate is not verified (`rejectUnauthorized: false`).
+
+In the Helm chart, `DB_CA_PATH` is rendered only when `postgres.ssl.caFileName` is set.
+
+**Example with SSL (omit `DB_CA_PATH` to connect without a CA certificate):**
 ```sh
 docker run -it \
   -e DB_HOST=your-db-host \
@@ -146,10 +150,10 @@ docker run -it \
   -e DB_USERNAME=postgres \
   -e DB_PASSWORD=postgres \
   -e DB_NAME=sync-layer \
-  -e DB_ENABLE_SSL=true \
-  -e DB_SSL_KEY_PATH=/app/certs/client-key.pem \
-  -e DB_SSL_CERT_PATH=/app/certs/client-cert.pem \
-  -e DB_SSL_CA_PATH=/app/certs/ca.pem \
+  -e DB_ENABLE_SSL_AUTH=true \
+  -e DB_KEY_PATH=/app/certs/client-key.pem \
+  -e DB_CERT_PATH=/app/certs/client-cert.pem \
+  -e DB_CA_PATH=/app/certs/ca.pem \
   -v /path/to/certs:/app/certs:ro \
   --rm --network host \
   sync-layer-server-migration:latest
