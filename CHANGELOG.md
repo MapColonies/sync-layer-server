@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.2](https://github.com/MapColonies/sync-layer-server/compare/v1.2.1...v1.2.2) (2026-11-10)
+
+
+### Bug Fixes
+
+* **deps:** address vulnerabilities found during security audit ([#62](https://github.com/MapColonies/sync-layer-server/issues/62)) ([62d272f](https://github.com/MapColonies/sync-layer-server/commit/62d272f79a0b3ef4a3412cedf95ab677d44b879e))
+
 ## [1.2.1](https://github.com/MapColonies/sync-layer-server/compare/v1.2.0...v1.2.1) (2026-10-22)
 
 
