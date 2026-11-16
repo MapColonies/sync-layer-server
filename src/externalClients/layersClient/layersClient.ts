@@ -15,7 +15,7 @@ interface RawLayerObject {
   entityVersion: number | null;
   geography: RawGeography & {
     height: number | null;
-    obstacleHeightsRange: { displayName: string } | null;
+    obstacleHeightsRange: { displayName: string | null; value: string | null } | null;
   };
   id: string;
   identifiers: {

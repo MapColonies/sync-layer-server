@@ -1,6 +1,5 @@
-import type { Logger } from '@map-colonies/js-logger';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ScheduleEntry, SyncConfig, SyncStateEntry, ThirdPartyResponse } from '@src/types';
+import type { ScheduleEntry, SyncStateEntry, ThirdPartyResponse } from '@src/types';
 import { SyncStatus } from '@src/types';
 
 import { fetchAndSyncLayerPage } from '@src/handler/layerSyncHandler';
@@ -8,6 +7,7 @@ import { getSyncConfig } from '@src/common/syncConfig';
 import * as syncStateRepository from '@src/dal/repositories/syncStateRepository';
 import * as layerDataRepository from '@src/dal/repositories/layerDataRepository';
 import * as layerClient from '@src/externalClients/layersClient/layersClient';
+import { makeLogger, makeSyncConfig } from '@tests/testDefinitions';
 
 vi.mock('@src/common/syncConfig', () => ({
   getSyncConfig: vi.fn(),
@@ -28,30 +28,7 @@ vi.mock('@src/externalClients/layersClient/layersClient', () => ({
   fetchPage: vi.fn(),
 }));
 
-const syncConfig: SyncConfig = {
-  layers: [{ name: 'obstacles', query: 'query { obstacles { id } }' }],
-  syncIntervalMs: 500,
-  pollIntervalMs: 600_000,
-  pageSize: 100,
-  thirdPartyBaseUrl: 'https://example.test/graphql',
-  realityId: 1,
-  requestingSystem: 'sync-layer-server_test',
-  requestingSystemName: 'sync-layer-server',
-  useDeleteEntities: true,
-  authToken: 'token',
-};
-
-function makeLogger(): Logger {
-  return {
-    info: vi.fn(),
-    error: vi.fn(),
-    warn: vi.fn(),
-    debug: vi.fn(),
-    fatal: vi.fn(),
-    trace: vi.fn(),
-    child: vi.fn(),
-  } as unknown as Logger;
-}
+const syncConfig = makeSyncConfig(['obstacles']);
 
 function makeState(overrides: Partial<SyncStateEntry> = {}): SyncStateEntry {
   return {
