@@ -1,42 +1,19 @@
-import type { Logger } from '@map-colonies/js-logger';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import axios from 'axios';
-import type { SyncConfig } from '@src/types';
 
 import { fetchPage } from '@src/externalClients/layersClient/layersClient';
 import { getSyncConfig } from '@src/common/syncConfig';
+import { makeLogger, makeSyncConfig } from '@tests/testDefinitions';
+import type { RawLayerObject } from '@src/externalClients/layersClient/interfaces';
 
 vi.mock('axios');
 vi.mock('@src/common/syncConfig', () => ({
   getSyncConfig: vi.fn(),
 }));
 
-const syncConfig: SyncConfig = {
-  layers: [{ name: 'obstacles', query: 'query { obstacles { id } }' }],
-  syncIntervalMs: 500,
-  pollIntervalMs: 600_000,
-  pageSize: 100,
-  thirdPartyBaseUrl: 'https://example.test/graphql',
-  realityId: 1,
-  requestingSystem: 'sync-layer-server_test',
-  requestingSystemName: 'sync-layer-server',
-  useDeleteEntities: true,
-  authToken: 'token',
-};
+const syncConfig = makeSyncConfig(['obstacles']);
 
-function makeLogger(): Logger {
-  return {
-    info: vi.fn(),
-    error: vi.fn(),
-    warn: vi.fn(),
-    debug: vi.fn(),
-    fatal: vi.fn(),
-    trace: vi.fn(),
-    child: vi.fn(),
-  } as unknown as Logger;
-}
-
-function rawObject(id: string, kind: string, coords: { latitude: number; longitude: number }[]) {
+function rawObject(id: string, kind: string, coords: { latitude: number; longitude: number }[]): RawLayerObject {
   return {
     id,
     deleted: false,
@@ -108,5 +85,22 @@ describe('fetchPage', () => {
 
     expect(logger.error).toHaveBeenCalledTimes(1);
     expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ id: 'area-bad', layerName: 'obstacles' }));
+  });
+
+  it('should pass obstacleHeightsRange (including value) and identifiers through to properties', async () => {
+    const logger = makeLogger();
+    const raw = rawObject('point-1', 'POINT', [{ latitude: 1, longitude: 2 }]);
+    raw.geography.obstacleHeightsRange = { displayName: 'Range A', value: 'RANGE_A' };
+    raw.identifiers = { essence: { displayName: 'Essence A', value: 'ESSENCE_A' }, name: 'n', number: '1' };
+    raw.geography.height = 42.5 as unknown as null;
+    mockResponse('obstacles', [raw]);
+
+    const result = await fetchPage(logger, 'obstacles', '10');
+
+    expect(result.objects[0]?.properties).toMatchObject({
+      height: 42.5,
+      obstacleHeightsRange: { displayName: 'Range A', value: 'RANGE_A' },
+      identifiers: { essence: { displayName: 'Essence A', value: 'ESSENCE_A' }, name: 'n', number: '1' },
+    });
   });
 });
