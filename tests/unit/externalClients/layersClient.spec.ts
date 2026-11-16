@@ -4,6 +4,7 @@ import axios from 'axios';
 import { fetchPage } from '@src/externalClients/layersClient/layersClient';
 import { getSyncConfig } from '@src/common/syncConfig';
 import { makeLogger, makeSyncConfig } from '@tests/testDefinitions';
+import type { RawLayerObject } from '@src/externalClients/layersClient/interfaces';
 
 vi.mock('axios');
 vi.mock('@src/common/syncConfig', () => ({
@@ -12,7 +13,7 @@ vi.mock('@src/common/syncConfig', () => ({
 
 const syncConfig = makeSyncConfig(['obstacles']);
 
-function rawObject(id: string, kind: string, coords: { latitude: number; longitude: number }[]) {
+function rawObject(id: string, kind: string, coords: { latitude: number; longitude: number }[]): RawLayerObject {
   return {
     id,
     deleted: false,
@@ -89,8 +90,8 @@ describe('fetchPage', () => {
   it('should pass obstacleHeightsRange (including value) and identifiers through to properties', async () => {
     const logger = makeLogger();
     const raw = rawObject('point-1', 'POINT', [{ latitude: 1, longitude: 2 }]);
-    raw.geography.obstacleHeightsRange = { displayName: 'Range A', value: 'RANGE_A' } as unknown as null;
-    raw.identifiers = { essence: { displayName: 'Essence A', value: 'ESSENCE_A' }, name: 'n', number: '1' } as unknown as null;
+    raw.geography.obstacleHeightsRange = { displayName: 'Range A', value: 'RANGE_A' };
+    raw.identifiers = { essence: { displayName: 'Essence A', value: 'ESSENCE_A' }, name: 'n', number: '1' };
     raw.geography.height = 42.5 as unknown as null;
     mockResponse('obstacles', [raw]);
 

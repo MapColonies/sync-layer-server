@@ -1,15 +1,6 @@
 import { point, lineString, polygon } from '@turf/helpers';
 import type { Geometry, LineString, Point, Polygon, Position } from 'geojson';
-
-export interface RawCoordinate {
-  latitude: number;
-  longitude: number;
-}
-
-export interface RawGeography {
-  coordinates: RawCoordinate[];
-  graphicsObjectKind: { value: string };
-}
+import type { RawCoordinate, RawGeography } from './interfaces';
 
 const MULTI_KINDS = new Set(['MULTIPOINT', 'MULTILINE', 'MULTILINESTRING', 'MULTIPOLYGON']);
 

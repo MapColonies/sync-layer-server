@@ -6,36 +6,8 @@ import type { LayerObject, ThirdPartyResponse } from '../../types';
 import { getSyncConfig } from '../../common/syncConfig';
 import { SERVICE_NAME } from '../../common/constants';
 import { buildLayerQuery } from '../layersClientModel';
-import { geographyToGeoJSON, type RawGeography } from './geometryParser';
-
-interface RawLayerObject {
-  createdBy: string | null;
-  creationTime: string | null;
-  deleted: boolean;
-  entityVersion: number | null;
-  geography: RawGeography & {
-    height: number | null;
-    obstacleHeightsRange: { displayName: string | null; value: string | null } | null;
-  };
-  id: string;
-  identifiers: {
-    essence: { displayName: string | null; value: string | null } | null;
-    name: string | null;
-    number: string | null;
-  } | null;
-  lastUpdateTime: string | null;
-  lastUpdatedBy: string | null;
-}
-
-interface GraphQLResponse {
-  data?: Record<string, RawLayerObject[]>;
-  extensions?: {
-    sequence: string;
-    deletedEntitiesCount: number;
-    fetchedEntitiesCount: number;
-    deletedEntitiesIDs?: string[];
-  };
-}
+import type { RawLayerObject, GraphQLResponse } from './interfaces';
+import { geographyToGeoJSON } from './geometryParser';
 
 const tracer = trace.getTracer(SERVICE_NAME);
 
