@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.0](https://github.com/MapColonies/sync-layer-server/compare/v1.2.1...v1.3.0) (2026-11-16)
+
+
+### Features
+
+* add obstacle height value and missing tests (MAPCO-12553) ([#65](https://github.com/MapColonies/sync-layer-server/issues/65)) ([88a68b3](https://github.com/MapColonies/sync-layer-server/commit/88a68b35b75720d8eead17ea8da89d6b5f13f9b9))
+
+
+### Bug Fixes
+
+* **deps:** address vulnerabilities found during security audit ([#62](https://github.com/MapColonies/sync-layer-server/issues/62)) ([62d272f](https://github.com/MapColonies/sync-layer-server/commit/62d272f79a0b3ef4a3412cedf95ab677d44b879e))
+
 ## [1.2.1](https://github.com/MapColonies/sync-layer-server/compare/v1.2.0...v1.2.1) (2026-10-22)
 
 
