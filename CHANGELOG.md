@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/MapColonies/sync-layer-server/compare/v1.3.0...v1.3.1) (2026-11-22)
+
+
+### Helm Changes
+
+* set default cpu to 25m request / 100m limit (MAPCO-11865) ([#66](https://github.com/MapColonies/sync-layer-server/issues/66)) ([a76b884](https://github.com/MapColonies/sync-layer-server/commit/a76b8846cc50008652b1dc0102408697d21e0899))
+
 ## [1.3.0](https://github.com/MapColonies/sync-layer-server/compare/v1.2.1...v1.3.0) (2026-11-16)
 
 
